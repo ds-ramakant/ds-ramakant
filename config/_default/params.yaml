@@ -4,8 +4,9 @@
 # This file is formatted using YAML syntax - learn more at https://learnxinyminutes.com/docs/yaml/
 
 # Appearance
+# check for more here https://wowchemy.com/docs/getting-started/customization/
 
-theme: cyberpunk #default = minimal
+theme: coffee #default = minimal
 day_night: true
 font: ''
 font_size: L
@@ -21,7 +22,7 @@ twitter: ''
 # Contact (edit or remove options as required)
 
 email: d.s.ramakant [at] gmail [dot] com
-phone: +91 9820212863
+#phone: +91 9820212863
 address:
   street: Andheri (W)
   city: Mumbai
@@ -40,20 +41,24 @@ appointment_url:
 contact_links:
   - icon: twitter
     icon_pack: fab
-    name: DM Me
-    link: 'https://twitter.com/Twitter'
+    name: Tweet
+    link: 'https://twitter.com/ds_ramakant'
   - icon: skype
     icon_pack: fab
     name: Skype Me
-    link: 'skype:echo123?call'
-  - icon: keybase
+    link: 'live:d.s.ramakant'
+  # - icon: keybase
+  #   icon_pack: fab
+  #   name: Chat on Keybase
+  #   link: 'https://keybase.io/'
+  - icon: github
     icon_pack: fab
-    name: Chat on Keybase
-    link: 'https://keybase.io/'
-  - icon: comments
-    icon_pack: fas
-    name: Discuss on Forum
-    link: 'https://discourse.gohugo.io'
+    name: Github
+    link: 'https://github.com/ds-ramakant'
+  - icon: instagram
+    icon_pack: fab
+    name: IG
+    link: 'https://www.instagram.com/ds_ramakant/'
 
 # Site header
 
@@ -79,7 +84,7 @@ highlight_languages:
   - r
   - python
   - latex
-math: false
+math: true
 diagram: false
 privacy_pack: false
 edit_page:
@@ -123,7 +128,7 @@ breadcrumb:
   page_types:
     book: true
 comments:
-  provider: ''
+  provider: 'commento' #default was empty
   commentable:
     post: true
     book: true

@@ -4,9 +4,9 @@ theme: "starter-hugo-academic"
 # Hugo Documentation: https://gohugo.io/getting-started/configuration/#all-configuration-settings
 # This file is formatted using YAML syntax - learn more at https://learnxinyminutes.com/docs/yaml/
 
-title: 'My Personal Blog' # Website name. default = Academic
+title: 'The Null Hypothesis' # Website name. default = Academic
 baseurl: 'https://academic-demo.netlify.app/' # Website URL
-copyright: '' # Footer text, e.g. '© {year} Me'
+copyright: '© D.S.Ramakant Raju, 2021-{year}' # Footer text, e.g. '© {year} Me'
 
 ############################
 ## LANGUAGE
@@ -58,7 +58,9 @@ taxonomies:
   publication_type: publication_types
   author: authors
 markup:
-  _merge: deep
+  goldmark:
+    renderer:
+      unsafe: true
 related:
   threshold: 80
   includeNewer: true
