@@ -136,7 +136,7 @@ comments:
     publication: true
     event: true
   disqus:
-    shortname: 'ds-ramakant.disqus.com'
+    shortname: 'ds-ramakant'
     show_count: false # Show comment count in page header? default was true
   commento:
     url: ''
