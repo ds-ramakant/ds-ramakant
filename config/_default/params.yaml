@@ -128,7 +128,7 @@ breadcrumb:
   page_types:
     book: true
 comments:
-  provider: 'commento' #default was empty
+  provider: 'disqus' #default was empty
   commentable:
     post: true
     book: true
@@ -136,8 +136,8 @@ comments:
     publication: true
     event: true
   disqus:
-    shortname: ''
-    show_count: true
+    shortname: 'ds-ramakant.disqus.com'
+    show_count: false # Show comment count in page header? default was true
   commento:
     url: ''
 search:
