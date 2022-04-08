@@ -1,0 +1,61 @@
+---
+title: "What a wonderful 'wordle'!"
+author: "Ramakant"
+date: '2022-04-05'
+slug: what-a-wonderful-wordle
+categories: R
+tags: wordle
+subtitle: Naa Modati Post
+summary: ''
+authors: []
+lastmod: '2022-04-05T16:15:24+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+Who ever thought that a bunch of black and green boxes would bring out the <a href = "https://www.merriam-webster.com/dictionary/logophile">logophile</a> in us all? With friends and family groups sharing their progress, I find this to be an entertaining mind-puzzle to kickstart the day. 
+
+And I was not alone in fascination for 5 letter words. Wordle has tickled the fascination of many in the data science community. I found Arthur Holtz's lucid breakdown of the Wordle dataset  <a href = "https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">post</a> quite interesting. Of course, there is 3B1B's incredibly detailed videos on applying Information Theory to this 6-by-5 grid. (original video as well as the follow-up errata)
+
+
+```{r EDA_begins, echo = FALSE, warning=FALSE }
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+
+suppressMessages({ library(httr)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(ggthemes)
+library(scales)
+library(tidyr)
+})
+
+url <- "https://www.nytimes.com/games/wordle/main.18637ca1.js"
+wordle_script_text <- GET(url) %>% 
+  content(as = "text", encoding = "UTF-8")
+word_list = substr(
+  wordle_script_text,
+  # cigar is the first word
+  str_locate(wordle_script_text, "cigar")[,"start"],
+  # shave is the last word
+  str_locate(wordle_script_text, "shave")[,"end"]) %>%
+  str_remove_all("\"") %>%
+  str_split(",") %>%
+  data.frame() %>%
+  select(word = 1) %>%
+  mutate(word = toupper(word))
+
+```
+
+This is an example of the glimpse function
+```{r, echo=FALSE}
+glimpse(word_list)
+
+
+```
+

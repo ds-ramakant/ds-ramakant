@@ -15,14 +15,15 @@ image:
   focal_point: ''
   preview_only: no
 projects: []
+draft: true
 ---
 
 A lot of this is courtesy of Apres Hill's blog 
 
 https://www.apreshill.com/blog/2020-12-new-year-new-blogdown/#step-1-create-repo
 
-```{r echo=FALSE}
-library(ggplot2)
+```{r echo=FALSE, warning=FALSE, message= FALSE}
+suppressMessages(library(ggplot2))
 oplot <- ggplot(Orange, aes(x = age, 
                    y = circumference, 
                    colour = Tree)) +
