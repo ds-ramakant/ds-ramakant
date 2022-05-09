@@ -63,185 +63,50 @@ vowels <- c("A", "E", "I", "O", "U")
 #inspired by this post https://towardsdatascience.com/wordle-a-frequency-analysis-approach-9989c3d7be5f
 
 #declaring null table
-freq_table <- tibble(alpha = LETTERS, 
-                     p1= NA,
-                     p2 = NA,
-                     p3 = NA, 
-                     p4 = NA, 
-                     P5 = NA)
+freq_table <- tibble(alpha = LETTERS)
 
 for(i in 1:5){
   
-  #l <- paste0("p",i)
-  
-  t <- paste0("freq",i)
-  
-  test[,i] <- position_word_list %>% 
+    test <- position_word_list %>% 
     select(all_of(i)) %>% 
-    group_by(across(i)) %>% # courtesy: https://stackoverflow.com/a/62433818/7938068
-    summarise(t = n())
-  # %>% 
-  #   arrange(desc(freq))
-  # 
-  # freq_table %>% 
-  #   right_join(test, by = )
-  
+    group_by_at(1) %>% # courtesy: https://www.tutorialspoint.com/how-to-use-column-index-instead-of-column-name-while-using-group-by-of-dplyr-in-r
+    summarise(f = n()) %>% 
+    arrange(desc(f)) %>% 
+      rename(a = 1) #first column is p1, p2.. etc and therefore must change
+    
+    freq_table <- freq_table %>%
+    left_join(test, by = c("alpha" = "a")) 
+    
+    colnames(freq_table)[1+i] = paste0("p",i)
+    rm(test)
+
 }
 
 
+freq_table[is.na(freq_table)] <- 0 #replacing NA with zero
 
 
+# creating grid of top 5 letters by position ------------------------------
 
+top5_selection <- function(x)
+{x %>% arrange(desc(x[2])) %>% head(5) %>% select(1)}
 
-# position of the first word as a vowel -----------------------------------
+final_grid <- tibble(position = 1:5)
 
-
-distribution_p1 <- position_word_list %>% 
-  select(p1) %>% 
-  mutate(type = case_when(p1 %in% vowels ~ "vowel",
-                          T ~ "consonant")) %>% 
-  group_by(p1, type) %>% 
-  summarise(freq = n()) %>% 
-  arrange(desc(freq))
-
-distribution_p1 %>% 
-  ggplot(aes(x = reorder(p1, -freq), y = freq))+
-  geom_col(aes(fill = type))+
-  scale_y_continuous(labels = comma)+
-  geom_text(aes(label = freq), 
-            #position = position_dodge(width = 0.3),
-            size = 3)+
-  labs(x = "Letter", y = "Frequency",
-       title = "Frequency of 1st word in Official Wordle list")
-
-distribution_p1 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5) %>% summarise(top5_prop = sum(prop))
-
-# position of the 2nd word as a vowel -----------------------------------
-distribution_p2 <- position_word_list %>% 
-  select(p2) %>% 
-  mutate(type = case_when(p2 %in% vowels ~ "vowel",
-                          T ~ "consonant")) %>% 
-  group_by(p2, type) %>% 
-  summarise(freq = n()) %>% 
-  arrange(desc(freq))
-
-distribution_p2 %>% 
-  ggplot(aes(x = reorder(p2, -freq), y = freq))+
-  geom_col(aes(fill = type))+
-  scale_y_continuous(labels = comma)+
-  geom_text(aes(label = freq), 
-            #position = position_dodge(width = 0.3),
-            size = 3)+
-  labs(x = "Letter", y = "Frequency",
-       title = "Frequency of 2nd word in Official Wordle list")
-
-distribution_p2 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5) %>% summarise(top5_prop = sum(prop))
-
-# position of the 3rd word as a vowel -----------------------------------
-distribution_p3 <- position_word_list %>% 
-  select(p3) %>% 
-  mutate(type = case_when(p3 %in% vowels ~ "vowel",
-                          T ~ "consonant")) %>% 
-  group_by(p3, type) %>% 
-  summarise(freq = n()) %>% 
-  arrange(desc(freq))
-
-distribution_p3 %>% 
-  ggplot(aes(x = reorder(p3, -freq), y = freq))+
-  geom_col(aes(fill = type))+
-  scale_y_continuous(labels = comma)+
-  geom_text(aes(label = freq), 
-            #position = position_dodge(width = 0.3),
-            size = 3)+
-  labs(x = "Letter", y = "Frequency",
-       title = "Frequency of 3rd word in Official Wordle list")
-
-distribution_p3 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5) %>% summarise(top5_prop = sum(prop))
-
-
-# position of the 3rd word as a vowel -----------------------------------
-distribution_p4 <- position_word_list %>% 
-  select(p4) %>% 
-  mutate(type = case_when(p4 %in% vowels ~ "vowel",
-                          T ~ "consonant")) %>% 
-  group_by(p4, type) %>% 
-  summarise(freq = n()) %>% 
-  arrange(desc(freq))
-
-distribution_p4 %>% 
-  ggplot(aes(x = reorder(p4, -freq), y = freq))+
-  geom_col(aes(fill = type))+
-  scale_y_continuous(labels = comma)+
-  geom_text(aes(label = freq), 
-            #position = position_dodge(width = 0.3),
-            size = 3)+
-  labs(x = "Letter", y = "Frequency",
-       title = "Frequency of 4th word in Official Wordle list")
-
-distribution_p4 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5) %>% summarise(top5_prop = sum(prop))
-
-
-# position of the 5th word as a vowel -----------------------------------
-distribution_p5 <- position_word_list %>% 
-  select(p5) %>% 
-  mutate(type = case_when(p5 %in% vowels ~ "vowel",
-                          T ~ "consonant")) %>% 
-  group_by(p5, type) %>% 
-  summarise(freq = n()) %>% 
-  arrange(desc(freq))
-
-distribution_p5 %>% 
-  ggplot(aes(x = reorder(p5, -freq), y = freq))+
-  geom_col(aes(fill = type))+
-  scale_y_continuous(labels = comma)+
-  geom_text(aes(label = freq), 
-            #position = position_dodge(width = 0.3),
-            size = 3)+
-  labs(x = "Letter", y = "Frequency",
-       title = "Frequency of 5th word in Official Wordle list")
-
-distribution_p5 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5) %>% summarise(top5_prop = sum(prop))
-
-
-# words most likely to be strong openers -----------------------------
-
-top5_p1 <-distribution_p1 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5)  
-
-top5_p2 <-distribution_p2 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5)  
-
-top5_p3 <-distribution_p3 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5)  
-
-top5_p4 <-distribution_p4 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5)  
-
-top5_p5 <-distribution_p5 %>% ungroup() %>% 
-  mutate(prop = freq/sum(freq)) %>% 
-  head(5)  
-
-
-cbind(top5_p1$p1, top5_p2$p2, top5_p3$p3)
+for(i in 2:length(freq_table)){
+  t <- top5_selection(select(freq_table,1,i))
+  
+  final_grid <- cbind(final_grid,t)
+  
+  colnames(final_grid)[i] = paste0("p",i-1)
+  
+}
 
 position_word_list %>% 
-  filter(p1 %in% top5_p1$p1,
-         p2 %in% top5_p2$p2,
-         p3 %in% top5_p3$p3,
-         p4 %in% top5_p4$p4,
-         p5 %in% top5_p5$p5) %>% 
-  arrange(p5)
+filter(p1 %in% final_grid$p1,
+       p2 %in% final_grid$p2,
+       p3 %in% final_grid$p3,
+       p4 %in% final_grid$p4,
+       p5 %in% final_grid$p5) %>% 
+  head(20)
+
