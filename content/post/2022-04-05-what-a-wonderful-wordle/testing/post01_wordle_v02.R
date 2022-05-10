@@ -91,10 +91,10 @@ freq_table[is.na(freq_table)] <- 0 #replacing NA with zero
 top5_selection <- function(x)
 {x %>% arrange(desc(x[2])) %>% head(5) %>% select(1)}
 
-final_grid <- tibble(position = 1:5)
+final_grid <- tibble(ranking = 1:5)
 
 for(i in 2:length(freq_table)){
-  t <- top5_selection(select(freq_table,1,i))
+  t <- top5_selection(select(freq_table,1,all_of(i)))
   
   final_grid <- cbind(final_grid,t)
   
@@ -102,11 +102,29 @@ for(i in 2:length(freq_table)){
   
 }
 
-position_word_list %>% 
+topwords <- position_word_list %>% 
 filter(p1 %in% final_grid$p1,
        p2 %in% final_grid$p2,
        p3 %in% final_grid$p3,
        p4 %in% final_grid$p4,
-       p5 %in% final_grid$p5) %>% 
-  head(20)
+       p5 %in% final_grid$p5) 
 
+#finding consolidated rank of each word-----------------
+
+table(topwords$p1 %in% final_grid$p1)
+
+topwords %>% mutate(x = which(p1[3] == final_grid$p1))
+
+topwords %<>% #this operator is same as "topwords <- topwords %>% "
+  rowwise() %>% 
+  mutate(p1_rank = which(p1 == final_grid$p1),
+         p2_rank = which(p2 == final_grid$p2),
+         p3_rank = which(p3 == final_grid$p3),
+         p4_rank = which(p4 == final_grid$p4),
+         p5_rank = which(p5 == final_grid$p5))
+
+
+topwords2 <- topwords %>% 
+  transmute(word = paste(p1,p2,p3,p4,p5),
+         rank = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %>% 
+  arrange(rank)
