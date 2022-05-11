@@ -6,7 +6,7 @@ slug: what-a-wonderful-wordle
 categories: R
 tags: wordle
 subtitle: Ek Choti Kadam
-summary: ''
+summary: 'Frequency analysis of the official Wordle list'
 authors: []
 lastmod: '2022-04-05T16:15:24+05:30'
 featured: no
@@ -15,19 +15,81 @@ image:
   focal_point: ''
   preview_only: no
 projects: []
+codefolding: hide
 ---
 
 <script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
 
 
 <p>Who ever thought that a bunch of black and green boxes would bring out the <a href = "https://www.merriam-webster.com/dictionary/logophile">logophile</a> in us all? With friends and family groups sharing their progress, I find this to be an entertaining mind-puzzle to kickstart the day.</p>
-<p>And I was not alone in fascination for 5 letter words. Wordle has tickled the fascination of many in the data science community. I found Arthur Holtz’s lucid breakdown of the Wordle dataset <a href = "https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">post</a> quite interesting. Of course, there is 3B1B’s incredibly detailed videos on applying Information Theory to this 6-by-5 grid. (<a href = "https://youtu.be/v68zYyaEmEA">original video</a> as well as the <a href = https://youtu.be/fRed0Xmc2Wg>follow-up errata</a>)</p>
-<p>Others have simulated the wordle game (<a href= "https://datascienceplus.com/how-i-selected-my-starting-word-for-wordle-using-simulations-and-r/">like here</a>) or even solved it for you (<a href = "https://blog.ephorie.de/wordle-solve-wordle-with-r">like this blog</a>)</p>
-<p>Fortunately for the reader, none of the above will be attempted in this post. Today we try and figure out what makes the best opening word</p>
-<div id="what-is-a-wordle" class="section level1">
-<h1>What is a wordle?</h1>
-<p>This is an example of the glimpse function</p>
-<pre><code>## Rows: 2,309
-## Columns: 1
-## $ word &lt;chr&gt; &quot;CIGAR&quot;, &quot;REBUT&quot;, &quot;SISSY&quot;, &quot;HUMPH&quot;, &quot;AWAKE&quot;, &quot;BLUSH&quot;, &quot;FOCAL&quot;, &quot;E~</code></pre>
+<p>And I was not alone in fascination for 5 letter words. Wordle has tickled the fascination of many in the data science community. I foun <a href = "https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">Arthur Holtz’s lucid breakdown of the Wordle dataset</a> quite interesting. Of course, there is 3B1B’s incredibly detailed videos on applying Information Theory to this 6-by-5 grid. (<a href = "https://youtu.be/v68zYyaEmEA">original video</a> as well as the <a href = https://youtu.be/fRed0Xmc2Wg>follow-up errata</a>)</p>
+<p>Others have simulated the wordle game (<a href= "https://datascienceplus.com/how-i-selected-my-starting-word-for-wordle-using-simulations-and-r/">like here</a>) or even solved it for you (<a href = "https://blog.ephorie.de/wordle-solve-wordle-with-r">like this blog</a>). I’ve read at least (<a href = "https://theconversation.com/want-to-master-wordle-heres-the-best-strategy-for-your-first-guess-176325">one blog post</a>) that has an academic take on the matter.</p>
+<p>Fortunately for the reader, none of the above will be attempted by me. My inspiration comes from <a href = "https://towardsdatascience.com/wordle-a-frequency-analysis-approach-9989c3d7be5f">Gerry Chng’s Frequency Analysis Approach</a> where I’ve tried to understand the most commonly occuring letters in the official word list by position by considering a ranking mechanism</p>
+<div id="what-is-a-wordle" class="section level2">
+<h2>What is a wordle?</h2>
+<p>The game rules are fairly simple:</p>
+<ol style="list-style-type: decimal">
+<li>You need to guess a 5-letter word. One new word is given every day</li>
+<li>You are given 6 guesses</li>
+<li>After every guess, each square is coded by a color
+<ul>
+<li>GREY: chosen letter is not in the word</li>
+<li>YELLOW: chosen letter is in the word by wrong position</li>
+<li>GREEN: chosen letter is in the word and in the correct position</li>
+</ul></li>
+<li>Repetition of letters is allowed</li>
+</ol>
+<p>That’s it!</p>
+<p>In my opinion, one of the reasons for the game going viral is the way the results are shared. You’ve possibly seen something like this floating around:
+<img src="Wordle%20sample%20share.jpg" width="250" alt="sample Wordle share" /></p>
+<p>…And if your family too has been bitten hard by the Wordle bug, then you would be familiar with group messages like this!</p>
+<div class="figure">
+<img src="wordle%20share%20whatsapp.jpg" width="100" alt="" />
+<p class="caption">whatsapp groups</p>
+</div>
+</div>
+<div id="frequency-analysis" class="section level2">
+<h2>Frequency analysis</h2>
+<p><a href="https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">Arthur Hotlz’s blog</a> is a good place to start for extracting and loading the Official Wordle list. After parsing and cleaning the data, here’s all the words broken down into a single rectangular dataframe <code>position_word_list</code> with each column signifying the position</p>
+<pre><code>##    p1 p2 p3 p4 p5
+## 1   C  I  G  A  R
+## 2   R  E  B  U  T
+## 3   S  I  S  S  Y
+## 4   H  U  M  P  H
+## 5   A  W  A  K  E
+## 6   B  L  U  S  H
+## 7   F  O  C  A  L
+## 8   E  V  A  D  E
+## 9   N  A  V  A  L
+## 10  S  E  R  V  E</code></pre>
+<p>Now onto some frequency analysis. Here’s a breakdown of all the letters in the wordle list sorted by number of occurrences.</p>
+<pre class="r fold-show"><code>knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+
+#appearance of all letters 
+
+
+letter_list &lt;- word_list %&gt;%
+  as.character() %&gt;%
+  str_split(&quot;&quot;) %&gt;% 
+  as.data.frame() %&gt;% 
+  select(w_letter = 1) %&gt;% 
+  filter(row_number()!=1) %&gt;%
+  filter(w_letter %in% LETTERS) %&gt;% 
+  mutate(type = case_when(w_letter %in% c(&quot;A&quot;,&quot;E&quot;,&quot;I&quot;,&quot;O&quot;,&quot;U&quot;) ~ &quot;vowel&quot;,
+                          T ~ &quot;consonant&quot;)) %&gt;% 
+  group_by(w_letter, type) %&gt;% 
+  summarise(freq = n()) %&gt;% 
+  arrange(desc(freq))
+
+letter_list %&gt;% ungroup() %&gt;% 
+  ggplot(aes(x = reorder(w_letter, -freq), y = freq))+
+  geom_col(aes(fill = type))+
+  scale_y_continuous(labels = comma)+
+  geom_text(aes(label = freq), 
+            #position = position_dodge(width = 0.3),
+            size = 3)+
+  labs(x = &quot;Letter&quot;, y = &quot;Frequency&quot;,
+       title = &quot;Frequency of words in Official Wordle list&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/graph-1.png" width="672" />
+Lets take a closer look at each position</p>
 </div>

@@ -125,6 +125,6 @@ topwords %<>% #this operator is same as "topwords <- topwords %>% "
 
 
 topwords2 <- topwords %>% 
-  transmute(word = paste(p1,p2,p3,p4,p5),
+  transmute(word = paste0(p1,p2,p3,p4,p5),
          rank = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %>% 
   arrange(rank)
