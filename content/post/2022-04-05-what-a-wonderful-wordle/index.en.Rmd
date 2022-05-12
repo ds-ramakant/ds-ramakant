@@ -15,7 +15,7 @@ image:
   focal_point: ''
   preview_only: no
 projects: []
-codefolding: hide
+
 ---
 
 Who ever thought that a bunch of black and green boxes would bring out the <a href = "https://www.merriam-webster.com/dictionary/logophile">logophile</a> in us all? With friends and family groups sharing their progress, I find this to be an entertaining mind-puzzle to kickstart the day. 
@@ -45,13 +45,13 @@ In my opinion, one of the reasons for the game going viral is the way the result
 
 ...And if your family too has been bitten hard by the Wordle bug, then you would be familiar with group messages like this! 
 
-![whatsapp groups](E:\Personal\G Drive\Weekends in Mumbai\Blog\Rstudio-WIP-folder\blog_v02\ds-ramakant\content\post\2022-04-05-what-a-wonderful-wordle\wordle share whatsapp.jpg){width=100px}
+![](E:\Personal\G Drive\Weekends in Mumbai\Blog\Rstudio-WIP-folder\blog_v02\ds-ramakant\content\post\2022-04-05-what-a-wonderful-wordle\wordle share whatsapp.jpg){width=100px}
 
 ## Frequency analysis 
 
-[Arthur Hotlz's blog](https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/ ) is a good place to start for extracting and loading the Official Wordle list. After parsing and cleaning the data, here's all the words broken down into a single rectangular dataframe `position_word_list` with each column signifying the position
+[Arthur Hotlz's blog](https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/ ) is a good place to start for extracting and loading the Official Wordle list. After parsing and cleaning the data, here's all the words broken down into a single rectangular dataframe `word_list` 
 
-```{r extracting and cleaning, echo = FALSE, warning=FALSE}
+```{r extracting and cleaning,  warning=FALSE}
 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 
@@ -63,6 +63,8 @@ library(ggplot2)
 library(ggthemes)
 library(scales)
 library(tidyr)
+library(tibble)
+library(kableExtra)
 theme_set(theme_light())
 })
 
@@ -81,6 +83,14 @@ word_list = substr(
   select(word = 1) %>%
   mutate(word = toupper(word))
 
+head(word_list,10)
+```
+
+Modification to the above is another dataframe with each of the characters separated into columns which we'll call `position_word_list` 
+
+*The line `select(-x)` removes the empty column that is created due to the `seperate()` function*
+```{r positio_word_list}
+
 position_word_list <- word_list %>% 
   separate(word, 
            sep = "", 
@@ -88,16 +98,13 @@ position_word_list <- word_list %>%
   select(-x)
 
 head(position_word_list,10)
+
+
 ```
 
-Now onto some frequency analysis. Here's a breakdown of all the letters in the wordle list sorted by number of occurrences. 
+Now onto some frequency analysis. Here's a breakdown of all the letters in the wordle list sorted by number of occurrences stored in `letter_list` and creating a simple bar graph. 
 
-```{r graph, warning=FALSE, class.source = 'fold-show'}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
-
-#appearance of all letters 
-
-
+```{r graph, warning=FALSE}
 letter_list <- word_list %>%
   as.character() %>%
   str_split("") %>% 
@@ -116,11 +123,74 @@ letter_list %>% ungroup() %>%
   geom_col(aes(fill = type))+
   scale_y_continuous(labels = comma)+
   geom_text(aes(label = freq), 
-            #position = position_dodge(width = 0.3),
             size = 3)+
   labs(x = "Letter", y = "Frequency",
        title = "Frequency of words in Official Wordle list")
 
 
 ```
-Lets take a closer look at each position
+This is interesting. Now I'm interested in finding out the top words by each position. To do this, I created a single table that provides me with the frequency of occurrences by position for each letter called `freq_table`. To iterate this process across all the 5 places, I used a `for` loop.
+
+
+```{r frequency table, warning=FALSE}
+
+
+#declaring null table
+freq_table <- tibble(alpha = LETTERS)
+
+for(i in 1:5){
+  
+    test <- position_word_list %>% 
+    select(all_of(i)) %>%
+# group_by_at() used for column index ID
+    group_by_at(1) %>% 
+    summarise(f = n()) %>% 
+    arrange(desc(f)) %>% 
+#first column returns p1, p2.. etc. Needs to be standardised while running left_join()
+    rename(a = 1) 
+
+#adding the freq values to a new dataframe
+    freq_table <- freq_table %>%
+    left_join(test, by = c("alpha" = "a")) 
+
+#renaming column name to reflect the position number
+    colnames(freq_table)[1+i] = paste0("p",i)
+    rm(test)
+
+}
+
+#replacing NA with zero
+freq_table[is.na(freq_table)] <- 0 
+
+head(freq_table)
+```
+
+```{r postion wise graph, warning=FALSE}
+
+freq_table_long10 <- freq_table %>% 
+  pivot_longer(cols = !alpha, names_to = "position", values_to = "freq") %>% 
+  select(position, alpha, freq) %>% 
+  arrange(position, -freq) %>% 
+  group_by(position) %>% 
+  slice_head(n = 10)
+
+
+
+```
+
+```{r}
+
+library(kableExtra)
+## Not run: 
+# Specify table size by pixels
+kable(cbind(mtcars, mtcars), "html") %>%
+    kable_styling() %>%
+    scroll_box(width = "500px", height = "200px")
+
+# Specify by percent
+kable(cbind(mtcars, mtcars), "html") %>%
+    kable_styling() %>%
+    scroll_box(width = "100%", height = "200px")
+```
+
+
