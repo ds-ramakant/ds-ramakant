@@ -5,7 +5,7 @@ date: '2022-04-05'
 slug: what-a-wonderful-wordle
 categories: R
 tags: wordle
-subtitle: Ek Choti Kadam
+subtitle: Best opening words for Wordle (as per me!)
 summary: 'Frequency analysis of the official Wordle list'
 authors: []
 lastmod: '2022-04-05T16:15:24+05:30'
@@ -18,11 +18,11 @@ projects: []
 
 ---
 
-Who ever thought that a bunch of black and green boxes would bring out the <a href = "https://www.merriam-webster.com/dictionary/logophile">logophile</a> in us all? With friends and family groups sharing their progress, I find this to be an entertaining mind-puzzle to kickstart the day. 
+Who ever thought that a bunch of [black and green boxes](https://www.nytimes.com/games/wordle/index.html) would bring out the logophile in us all? With friends and family groups sharing their progress, I find this to be an entertaining mind-puzzle to kickstart the day. 
 
-And I was not alone in fascination for 5 letter words. Wordle has tickled the fascination of many in the data science community. I foun <a href = "https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">Arthur Holtz's lucid breakdown of the Wordle dataset</a> quite interesting. Of course, there is 3B1B's incredibly detailed videos on applying Information Theory to this 6-by-5 grid. (<a href = "https://youtu.be/v68zYyaEmEA">original video</a> as well as the <a href = https://youtu.be/fRed0Xmc2Wg>follow-up errata</a>)
+And I was not alone in my quest for 5 letter words. Wordle has tickled the fascination of many in the data science community. I found <a href = "https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">Arthur Holtz's lucid breakdown of the Wordle dataset</a> quite interesting. Of course, there is 3B1B's incredibly detailed videos on applying Information Theory to this 6-by-5 grid. (<a href = "https://youtu.be/v68zYyaEmEA">original video</a> as well as the <a href = https://youtu.be/fRed0Xmc2Wg>follow-up errata</a>)
 
-Others have simulated the wordle game (<a href= "https://datascienceplus.com/how-i-selected-my-starting-word-for-wordle-using-simulations-and-r/">like here</a>) or even solved it for you (<a href = "https://blog.ephorie.de/wordle-solve-wordle-with-r">like this blog</a>). I've read at least (<a href = "https://theconversation.com/want-to-master-wordle-heres-the-best-strategy-for-your-first-guess-176325">one blog post</a>)  that has an academic take on the matter.
+Others have simulated the wordle game (<a href= "https://datascienceplus.com/how-i-selected-my-starting-word-for-wordle-using-simulations-and-r/">like here</a>) or even solved it for you (<a href = "https://blog.ephorie.de/wordle-solve-wordle-with-r">like this blog</a>). I've read at least <a href = "https://theconversation.com/want-to-master-wordle-heres-the-best-strategy-for-your-first-guess-176325">one blog post</a>  that has an academic take on the matter.
 
 Fortunately for the reader, none of the above will be attempted by me. My inspiration comes from <a href = "https://towardsdatascience.com/wordle-a-frequency-analysis-approach-9989c3d7be5f">Gerry Chng's Frequency Analysis Approach</a> where I've tried to understand the most commonly occuring letters in the official word list by position by considering a ranking mechanism
 
@@ -64,6 +64,7 @@ library(ggthemes)
 library(scales)
 library(tidyr)
 library(tibble)
+library(forcats)
 library(kableExtra)
 theme_set(theme_light())
 })
@@ -125,16 +126,14 @@ letter_list %>% ungroup() %>%
   geom_text(aes(label = freq), 
             size = 3)+
   labs(x = "Letter", y = "Frequency",
-       title = "Frequency of words in Official Wordle list")
+       title = "Frequency of letters in Official Wordle list")
 
 
 ```
-This is interesting. Now I'm interested in finding out the top words by each position. To do this, I created a single table that provides me with the frequency of occurrences by position for each letter called `freq_table`. To iterate this process across all the 5 places, I used a `for` loop.
+This is interesting. Now I'm curious to know the top words by each position. To do this, I created a single table  called `freq_table` that provides me with the frequency of occurrences by position for each letter. To iterate this process across all the 5 places, I used a `for` loop. Output is generated via the `kableExtra` package which provides a neat scrollable window
 
 
 ```{r frequency table, warning=FALSE}
-
-
 #declaring null table
 freq_table <- tibble(alpha = LETTERS)
 
@@ -146,7 +145,7 @@ for(i in 1:5){
     group_by_at(1) %>% 
     summarise(f = n()) %>% 
     arrange(desc(f)) %>% 
-#first column returns p1, p2.. etc. Needs to be standardised while running left_join()
+#first column returns p1, p2.. etc and is standardised
     rename(a = 1) 
 
 #adding the freq values to a new dataframe
@@ -162,9 +161,15 @@ for(i in 1:5){
 #replacing NA with zero
 freq_table[is.na(freq_table)] <- 0 
 
-head(freq_table)
-```
+#output using kable's scrollable window 
+kable(freq_table, "html", 
+      caption = "Frequency Table") %>%
+    kable_styling() %>%
+    scroll_box(width = "70%", height = "300px") %>% 
+  kable_classic()
 
+```
+This table looks good. However, for my visualisation, I want to plot the top 10 letters in each position. For this, I'm going to use `pivot_longer()` to make it easier to generate the viz. 
 ```{r postion wise graph, warning=FALSE}
 
 freq_table_long10 <- freq_table %>% 
@@ -172,25 +177,113 @@ freq_table_long10 <- freq_table %>%
   select(position, alpha, freq) %>% 
   arrange(position, -freq) %>% 
   group_by(position) %>% 
-  slice_head(n = 10)
+  slice_head(n = 10) %>% ungroup
 
+kable(freq_table_long10, "html", 
+      caption = "Top 10 letters within \neach position") %>%
+    kable_styling() %>%
+    scroll_box(height = "200px") %>% 
+  kable_classic()
 
 
 ```
+So we have the # of occurences in each position laid out in a *tidy* format in one long rectangular dataframe. Now sprinkling some magic courtesy `ggplot` 
 
+### Side note on reordering within facets
+
+*I tried my best to understand why I was unable to sort within each facet in spite of using `free_y`. Apparently that's a known issue and a workaround has been discussed by [David Robinson](https://github.com/dgrtwo/drlib/blob/master/R/reorder_within.R), [Julia Silger](https://juliasilge.github.io/tidytext/reference/reorder_within.html) and [Tyler Rinker](https://trinkerrstuff.wordpress.com/2016/12/23/ordering-categories-within-ggplot2-facets/). To achieve this, two more functions need to be created `reorder_within` and `scale_y_reordered`*
 ```{r}
+reorder_within <- function(x, by, within, fun = mean, sep = "___", ...) {
+  new_x <- paste(x, within, sep = sep)
+  stats::reorder(new_x, by, FUN = fun)
+}
 
-library(kableExtra)
-## Not run: 
-# Specify table size by pixels
-kable(cbind(mtcars, mtcars), "html") %>%
-    kable_styling() %>%
-    scroll_box(width = "500px", height = "200px")
+scale_y_reordered <- function(..., sep = "___") {
+  reg <- paste0(sep, ".+$")
+  ggplot2::scale_y_discrete(labels = function(x) gsub(reg, "", x), ...)
+}
 
-# Specify by percent
-kable(cbind(mtcars, mtcars), "html") %>%
-    kable_styling() %>%
-    scroll_box(width = "100%", height = "200px")
+freq_table_long10 %>% 
+  mutate(type = case_when(alpha %in% c("A","E","I","O","U") ~ "vowel",
+                          T ~ "consonant")) %>% 
+  ggplot(aes(y = reorder_within(alpha, freq, position), x = freq))+
+  geom_col(aes(fill = type))+
+  scale_y_reordered()+
+  facet_wrap(~position, 
+             scales = "free_y", 
+             ncol = 5)+
+  labs(x = "Frequency", y = "Letter",
+       title = "Frequency of top 10 letters by position in Official Wordle list ",
+       caption = "D.S.Ramakant Raju\nwww.linkedin.com/in/dsramakant/")
+
+
 ```
 
+Aha! Things are starting to get more clearer. Highly common letters in the 1st position are **S, C, B, T and P** - notice there's only 1 vowel (**A**) that occurs in the top 10. Vowels appear more frequently in the 2nd and 3rd positions. Last position has a higher occurrence of **E, Y, T, R & L**
 
+
+## Which words can be the best Worlde openers?
+
+Armed with the above knowledge, we now can filter out the commonly occurring words. Also I use a naive method to rank these words basis the occurrence of the letters. For instance, in the picture above, the word **S A I N T** seems to be a valid word comprising of the top occurring letters. 
+
+Admittedly, I use a pretty crude method to determine the best openers. Known drawbacks of this methodology are:
+1. Doesn't consider the *future path* of the word (number of steps to get to the right word)
+2. Only considers the rank of the letters and not the actual probability of occurrence
+
+With that out of the way, I was able to determine that there are **39 words** that can be formed with the top 5 occuring letters in each position. Scroll below to find out. 
+
+```{r final grid, warning=FALSE}
+
+#function to pick the top 5 letters
+top5_selection <- function(x)
+{x %>% arrange(desc(x[2])) %>% head(5) %>% select(1)}
+
+#defining null table
+final_grid <- tibble(ranking = 1:5)
+
+for(i in 2:length(freq_table)){
+  t <- top5_selection(select(freq_table,1,all_of(i)))
+  
+  final_grid <- cbind(final_grid,t)
+  
+  colnames(final_grid)[i] = paste0("p",i-1)
+  
+}
+
+topwords <- position_word_list %>% 
+filter(p1 %in% final_grid$p1,
+       p2 %in% final_grid$p2,
+       p3 %in% final_grid$p3,
+       p4 %in% final_grid$p4,
+       p5 %in% final_grid$p5) 
+
+#finding consolidated rank of each word
+topwords %<>%
+  rowwise() %>% 
+  mutate(p1_rank = which(p1 == final_grid$p1),
+         p2_rank = which(p2 == final_grid$p2),
+         p3_rank = which(p3 == final_grid$p3),
+         p4_rank = which(p4 == final_grid$p4),
+         p5_rank = which(p5 == final_grid$p5))
+
+
+topwords2 <- topwords %>% 
+  transmute(word = paste0(p1,p2,p3,p4,p5),
+         rank = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %>% 
+  arrange(rank)
+
+
+
+kable(topwords2, "html", 
+      caption = "Top 39 words") %>%
+    kable_styling() %>%
+    scroll_box(width = "50%", height = "400px") %>% 
+  kable_classic()
+
+```
+
+There we have it. My take on the best opening words. 
+
+I've used words such as **SAINT, CRANE, COAST** etc and they've been reasonably useful to me. 
+
+Which are your favourite opening words? Please do leave a comment to let me know!

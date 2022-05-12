@@ -5,7 +5,7 @@ date: '2022-04-05'
 slug: what-a-wonderful-wordle
 categories: R
 tags: wordle
-subtitle: Ek Choti Kadam
+subtitle: Best opening words for Wordle (as per me!)
 summary: 'Frequency analysis of the official Wordle list'
 authors: []
 lastmod: '2022-04-05T16:15:24+05:30'
@@ -23,9 +23,9 @@ projects: []
 <link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
 
 
-<p>Who ever thought that a bunch of black and green boxes would bring out the <a href = "https://www.merriam-webster.com/dictionary/logophile">logophile</a> in us all? With friends and family groups sharing their progress, I find this to be an entertaining mind-puzzle to kickstart the day.</p>
-<p>And I was not alone in fascination for 5 letter words. Wordle has tickled the fascination of many in the data science community. I foun <a href = "https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">Arthur Holtz’s lucid breakdown of the Wordle dataset</a> quite interesting. Of course, there is 3B1B’s incredibly detailed videos on applying Information Theory to this 6-by-5 grid. (<a href = "https://youtu.be/v68zYyaEmEA">original video</a> as well as the <a href = https://youtu.be/fRed0Xmc2Wg>follow-up errata</a>)</p>
-<p>Others have simulated the wordle game (<a href= "https://datascienceplus.com/how-i-selected-my-starting-word-for-wordle-using-simulations-and-r/">like here</a>) or even solved it for you (<a href = "https://blog.ephorie.de/wordle-solve-wordle-with-r">like this blog</a>). I’ve read at least (<a href = "https://theconversation.com/want-to-master-wordle-heres-the-best-strategy-for-your-first-guess-176325">one blog post</a>) that has an academic take on the matter.</p>
+<p>Who ever thought that a bunch of <a href="https://www.nytimes.com/games/wordle/index.html">black and green boxes</a> would bring out the logophile in us all? With friends and family groups sharing their progress, I find this to be an entertaining mind-puzzle to kickstart the day.</p>
+<p>And I was not alone in my quest for 5 letter words. Wordle has tickled the fascination of many in the data science community. I found <a href = "https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/">Arthur Holtz’s lucid breakdown of the Wordle dataset</a> quite interesting. Of course, there is 3B1B’s incredibly detailed videos on applying Information Theory to this 6-by-5 grid. (<a href = "https://youtu.be/v68zYyaEmEA">original video</a> as well as the <a href = https://youtu.be/fRed0Xmc2Wg>follow-up errata</a>)</p>
+<p>Others have simulated the wordle game (<a href= "https://datascienceplus.com/how-i-selected-my-starting-word-for-wordle-using-simulations-and-r/">like here</a>) or even solved it for you (<a href = "https://blog.ephorie.de/wordle-solve-wordle-with-r">like this blog</a>). I’ve read at least <a href = "https://theconversation.com/want-to-master-wordle-heres-the-best-strategy-for-your-first-guess-176325">one blog post</a> that has an academic take on the matter.</p>
 <p>Fortunately for the reader, none of the above will be attempted by me. My inspiration comes from <a href = "https://towardsdatascience.com/wordle-a-frequency-analysis-approach-9989c3d7be5f">Gerry Chng’s Frequency Analysis Approach</a> where I’ve tried to understand the most commonly occuring letters in the official word list by position by considering a ranking mechanism</p>
 <div id="what-is-a-wordle" class="section level2">
 <h2>What is a wordle?</h2>
@@ -61,6 +61,7 @@ library(ggthemes)
 library(scales)
 library(tidyr)
 library(tibble)
+library(forcats)
 library(kableExtra)
 theme_set(theme_light())
 })
@@ -133,9 +134,9 @@ letter_list %&gt;% ungroup() %&gt;%
   geom_text(aes(label = freq), 
             size = 3)+
   labs(x = &quot;Letter&quot;, y = &quot;Frequency&quot;,
-       title = &quot;Frequency of words in Official Wordle list&quot;)</code></pre>
+       title = &quot;Frequency of letters in Official Wordle list&quot;)</code></pre>
 <p><img src="{{< blogdown/postref >}}index.en_files/figure-html/graph-1.png" width="672" />
-This is interesting. Now I’m interested in finding out the top words by each position. To do this, I created a single table that provides me with the frequency of occurrences by position for each letter called <code>freq_table</code>. To iterate this process across all the 5 places, I used a <code>for</code> loop.</p>
+This is interesting. Now I’m curious to know the top words by each position. To do this, I created a single table called <code>freq_table</code> that provides me with the frequency of occurrences by position for each letter. To iterate this process across all the 5 places, I used a <code>for</code> loop. Output is generated via the <code>kableExtra</code> package which provides a neat scrollable window</p>
 <pre class="r"><code>#declaring null table
 freq_table &lt;- tibble(alpha = LETTERS)
 
@@ -147,7 +148,7 @@ for(i in 1:5){
     group_by_at(1) %&gt;% 
     summarise(f = n()) %&gt;% 
     arrange(desc(f)) %&gt;% 
-#first column returns p1, p2.. etc. Needs to be standardised while running left_join()
+#first column returns p1, p2.. etc and is standardised
     rename(a = 1) 
 
 #adding the freq values to a new dataframe
@@ -163,4730 +164,1563 @@ for(i in 1:5){
 #replacing NA with zero
 freq_table[is.na(freq_table)] &lt;- 0 
 
-head(freq_table)</code></pre>
-<pre><code>## # A tibble: 6 x 6
-##   alpha    p1    p2    p3    p4    p5
-##   &lt;chr&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;
-## 1 A       140   304   306   162    63
-## 2 B       173    16    56    24    11
-## 3 C       198    40    56   150    31
-## 4 D       111    20    75    69   118
-## 5 E        72   241   177   318   422
-## 6 F       135     8    25    35    26</code></pre>
+#output using kable&#39;s scrollable window 
+kable(freq_table, &quot;html&quot;, 
+      caption = &quot;Frequency Table&quot;) %&gt;%
+    kable_styling() %&gt;%
+    scroll_box(width = &quot;70%&quot;, height = &quot;300px&quot;) %&gt;% 
+  kable_classic()</code></pre>
+<div class="lightable-classic" style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:70%;  font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:frequency table)Frequency Table
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+alpha
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p2
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p4
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p5
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+140
+</td>
+<td style="text-align:right;">
+304
+</td>
+<td style="text-align:right;">
+306
+</td>
+<td style="text-align:right;">
+162
+</td>
+<td style="text-align:right;">
+63
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+B
+</td>
+<td style="text-align:right;">
+173
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:right;">
+198
+</td>
+<td style="text-align:right;">
+40
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+150
+</td>
+<td style="text-align:right;">
+31
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+D
+</td>
+<td style="text-align:right;">
+111
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+75
+</td>
+<td style="text-align:right;">
+69
+</td>
+<td style="text-align:right;">
+118
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+E
+</td>
+<td style="text-align:right;">
+72
+</td>
+<td style="text-align:right;">
+241
+</td>
+<td style="text-align:right;">
+177
+</td>
+<td style="text-align:right;">
+318
+</td>
+<td style="text-align:right;">
+422
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+F
+</td>
+<td style="text-align:right;">
+135
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+26
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:right;">
+115
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+67
+</td>
+<td style="text-align:right;">
+76
+</td>
+<td style="text-align:right;">
+41
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+H
+</td>
+<td style="text-align:right;">
+69
+</td>
+<td style="text-align:right;">
+144
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:right;">
+137
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+I
+</td>
+<td style="text-align:right;">
+34
+</td>
+<td style="text-align:right;">
+201
+</td>
+<td style="text-align:right;">
+266
+</td>
+<td style="text-align:right;">
+158
+</td>
+<td style="text-align:right;">
+11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+J
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+K
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+55
+</td>
+<td style="text-align:right;">
+113
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+L
+</td>
+<td style="text-align:right;">
+87
+</td>
+<td style="text-align:right;">
+200
+</td>
+<td style="text-align:right;">
+112
+</td>
+<td style="text-align:right;">
+162
+</td>
+<td style="text-align:right;">
+155
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+M
+</td>
+<td style="text-align:right;">
+107
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+68
+</td>
+<td style="text-align:right;">
+42
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N
+</td>
+<td style="text-align:right;">
+37
+</td>
+<td style="text-align:right;">
+87
+</td>
+<td style="text-align:right;">
+137
+</td>
+<td style="text-align:right;">
+182
+</td>
+<td style="text-align:right;">
+130
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+O
+</td>
+<td style="text-align:right;">
+41
+</td>
+<td style="text-align:right;">
+279
+</td>
+<td style="text-align:right;">
+243
+</td>
+<td style="text-align:right;">
+132
+</td>
+<td style="text-align:right;">
+58
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+P
+</td>
+<td style="text-align:right;">
+141
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+50
+</td>
+<td style="text-align:right;">
+56
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Q
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R
+</td>
+<td style="text-align:right;">
+105
+</td>
+<td style="text-align:right;">
+267
+</td>
+<td style="text-align:right;">
+163
+</td>
+<td style="text-align:right;">
+150
+</td>
+<td style="text-align:right;">
+212
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S
+</td>
+<td style="text-align:right;">
+365
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+171
+</td>
+<td style="text-align:right;">
+36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:right;">
+149
+</td>
+<td style="text-align:right;">
+77
+</td>
+<td style="text-align:right;">
+111
+</td>
+<td style="text-align:right;">
+139
+</td>
+<td style="text-align:right;">
+253
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+U
+</td>
+<td style="text-align:right;">
+33
+</td>
+<td style="text-align:right;">
+185
+</td>
+<td style="text-align:right;">
+165
+</td>
+<td style="text-align:right;">
+82
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+V
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+49
+</td>
+<td style="text-align:right;">
+45
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W
+</td>
+<td style="text-align:right;">
+82
+</td>
+<td style="text-align:right;">
+44
+</td>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:right;">
+17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+X
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Y
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+364
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Z
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This table looks good. However, for my visualisation, I want to plot the top 10 letters in each position. For this, I’m going to use <code>pivot_longer()</code> to make it easier to generate the viz. </p>
 <pre class="r"><code>freq_table_long10 &lt;- freq_table %&gt;% 
   pivot_longer(cols = !alpha, names_to = &quot;position&quot;, values_to = &quot;freq&quot;) %&gt;% 
   select(position, alpha, freq) %&gt;% 
   arrange(position, -freq) %&gt;% 
   group_by(position) %&gt;% 
-  slice_head(n = 10)</code></pre>
-<pre class="r"><code>library(kableExtra)
-## Not run: 
-# Specify table size by pixels
-kable(cbind(mtcars, mtcars), &quot;html&quot;) %&gt;%
+  slice_head(n = 10) %&gt;% ungroup
+
+kable(freq_table_long10, &quot;html&quot;, 
+      caption = &quot;Top 10 letters within \neach position&quot;) %&gt;%
     kable_styling() %&gt;%
-    scroll_box(width = &quot;500px&quot;, height = &quot;200px&quot;)</code></pre>
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:200px; overflow-x: scroll; width:500px; ">
+    scroll_box(height = &quot;200px&quot;) %&gt;% 
+  kable_classic()</code></pre>
+<div class="lightable-classic" style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:200px;  font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
 <table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:postion wise graph)Top 10 letters within
+each position
+</caption>
 <thead>
 <tr>
 <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+position
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+alpha
 </th>
 <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-mpg
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-cyl
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-disp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-hp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-drat
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-wt
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-qsec
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-vs
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-am
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-gear
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-carb
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-mpg
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-cyl
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-disp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-hp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-drat
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-wt
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-qsec
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-vs
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-am
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-gear
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-carb
+freq
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-Mazda RX4
+p1
+</td>
+<td style="text-align:left;">
+S
 </td>
 <td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.620
-</td>
-<td style="text-align:right;">
-16.46
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.620
-</td>
-<td style="text-align:right;">
-16.46
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+365
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Mazda RX4 Wag
+p1
+</td>
+<td style="text-align:left;">
+C
 </td>
 <td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.875
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.875
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+198
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Datsun 710
+p1
+</td>
+<td style="text-align:left;">
+B
 </td>
 <td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-108.0
-</td>
-<td style="text-align:right;">
-93
-</td>
-<td style="text-align:right;">
-3.85
-</td>
-<td style="text-align:right;">
-2.320
-</td>
-<td style="text-align:right;">
-18.61
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-108.0
-</td>
-<td style="text-align:right;">
-93
-</td>
-<td style="text-align:right;">
-3.85
-</td>
-<td style="text-align:right;">
-2.320
-</td>
-<td style="text-align:right;">
-18.61
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+173
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Hornet 4 Drive
+p1
+</td>
+<td style="text-align:left;">
+T
 </td>
 <td style="text-align:right;">
-21.4
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-258.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.215
-</td>
-<td style="text-align:right;">
-19.44
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-21.4
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-258.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.215
-</td>
-<td style="text-align:right;">
-19.44
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
+149
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Hornet Sportabout
+p1
+</td>
+<td style="text-align:left;">
+P
 </td>
 <td style="text-align:right;">
-18.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-18.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+141
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Valiant
+p1
+</td>
+<td style="text-align:left;">
+A
 </td>
 <td style="text-align:right;">
-18.1
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-225.0
-</td>
-<td style="text-align:right;">
-105
-</td>
-<td style="text-align:right;">
-2.76
-</td>
-<td style="text-align:right;">
-3.460
-</td>
-<td style="text-align:right;">
-20.22
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-18.1
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-225.0
-</td>
-<td style="text-align:right;">
-105
-</td>
-<td style="text-align:right;">
-2.76
-</td>
-<td style="text-align:right;">
-3.460
-</td>
-<td style="text-align:right;">
-20.22
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
+140
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Duster 360
+p1
+</td>
+<td style="text-align:left;">
+F
 </td>
 <td style="text-align:right;">
-14.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.21
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-15.84
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-14.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.21
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-15.84
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+135
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 240D
+p1
+</td>
+<td style="text-align:left;">
+G
 </td>
 <td style="text-align:right;">
-24.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-146.7
-</td>
-<td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-3.69
-</td>
-<td style="text-align:right;">
-3.190
-</td>
-<td style="text-align:right;">
-20.00
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-24.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-146.7
-</td>
-<td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-3.69
-</td>
-<td style="text-align:right;">
-3.190
-</td>
-<td style="text-align:right;">
-20.00
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+115
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 230
+p1
+</td>
+<td style="text-align:left;">
+D
 </td>
 <td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-140.8
-</td>
-<td style="text-align:right;">
-95
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.150
-</td>
-<td style="text-align:right;">
-22.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-140.8
-</td>
-<td style="text-align:right;">
-95
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.150
-</td>
-<td style="text-align:right;">
-22.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+111
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 280
+p1
+</td>
+<td style="text-align:left;">
+M
 </td>
 <td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.30
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.30
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+107
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 280C
+p2
+</td>
+<td style="text-align:left;">
+A
 </td>
 <td style="text-align:right;">
-17.8
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-17.8
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+304
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 450SE
+p2
+</td>
+<td style="text-align:left;">
+O
 </td>
 <td style="text-align:right;">
-16.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-4.070
-</td>
-<td style="text-align:right;">
-17.40
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-16.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-4.070
-</td>
-<td style="text-align:right;">
-17.40
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
+279
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 450SL
+p2
+</td>
+<td style="text-align:left;">
+R
 </td>
 <td style="text-align:right;">
-17.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.730
-</td>
-<td style="text-align:right;">
-17.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-17.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.730
-</td>
-<td style="text-align:right;">
-17.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
+267
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 450SLC
+p2
+</td>
+<td style="text-align:left;">
+E
 </td>
 <td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.780
-</td>
-<td style="text-align:right;">
-18.00
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.780
-</td>
-<td style="text-align:right;">
-18.00
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
+241
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Cadillac Fleetwood
+p2
+</td>
+<td style="text-align:left;">
+I
 </td>
 <td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-472.0
-</td>
-<td style="text-align:right;">
-205
-</td>
-<td style="text-align:right;">
-2.93
-</td>
-<td style="text-align:right;">
-5.250
-</td>
-<td style="text-align:right;">
-17.98
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-472.0
-</td>
-<td style="text-align:right;">
-205
-</td>
-<td style="text-align:right;">
-2.93
-</td>
-<td style="text-align:right;">
-5.250
-</td>
-<td style="text-align:right;">
-17.98
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+201
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Lincoln Continental
+p2
+</td>
+<td style="text-align:left;">
+L
 </td>
 <td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-460.0
-</td>
-<td style="text-align:right;">
-215
-</td>
-<td style="text-align:right;">
-3.00
-</td>
-<td style="text-align:right;">
-5.424
-</td>
-<td style="text-align:right;">
-17.82
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-460.0
-</td>
-<td style="text-align:right;">
-215
-</td>
-<td style="text-align:right;">
-3.00
-</td>
-<td style="text-align:right;">
-5.424
-</td>
-<td style="text-align:right;">
-17.82
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+200
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Chrysler Imperial
+p2
+</td>
+<td style="text-align:left;">
+U
 </td>
 <td style="text-align:right;">
-14.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-440.0
-</td>
-<td style="text-align:right;">
-230
-</td>
-<td style="text-align:right;">
-3.23
-</td>
-<td style="text-align:right;">
-5.345
-</td>
-<td style="text-align:right;">
-17.42
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-14.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-440.0
-</td>
-<td style="text-align:right;">
-230
-</td>
-<td style="text-align:right;">
-3.23
-</td>
-<td style="text-align:right;">
-5.345
-</td>
-<td style="text-align:right;">
-17.42
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+185
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Fiat 128
+p2
+</td>
+<td style="text-align:left;">
+H
 </td>
 <td style="text-align:right;">
-32.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-78.7
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-2.200
-</td>
-<td style="text-align:right;">
-19.47
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-32.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-78.7
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-2.200
-</td>
-<td style="text-align:right;">
-19.47
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+144
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Honda Civic
+p2
+</td>
+<td style="text-align:left;">
+N
 </td>
 <td style="text-align:right;">
-30.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-75.7
-</td>
-<td style="text-align:right;">
-52
-</td>
-<td style="text-align:right;">
-4.93
-</td>
-<td style="text-align:right;">
-1.615
-</td>
-<td style="text-align:right;">
-18.52
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-30.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-75.7
-</td>
-<td style="text-align:right;">
-52
-</td>
-<td style="text-align:right;">
-4.93
-</td>
-<td style="text-align:right;">
-1.615
-</td>
-<td style="text-align:right;">
-18.52
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+87
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Toyota Corolla
+p2
+</td>
+<td style="text-align:left;">
+T
 </td>
 <td style="text-align:right;">
-33.9
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-71.1
-</td>
-<td style="text-align:right;">
-65
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-1.835
-</td>
-<td style="text-align:right;">
-19.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-33.9
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-71.1
-</td>
-<td style="text-align:right;">
-65
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-1.835
-</td>
-<td style="text-align:right;">
-19.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+77
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Toyota Corona
+p3
+</td>
+<td style="text-align:left;">
+A
 </td>
 <td style="text-align:right;">
-21.5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.1
-</td>
-<td style="text-align:right;">
-97
-</td>
-<td style="text-align:right;">
-3.70
-</td>
-<td style="text-align:right;">
-2.465
-</td>
-<td style="text-align:right;">
-20.01
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-21.5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.1
-</td>
-<td style="text-align:right;">
-97
-</td>
-<td style="text-align:right;">
-3.70
-</td>
-<td style="text-align:right;">
-2.465
-</td>
-<td style="text-align:right;">
-20.01
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
+306
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Dodge Challenger
+p3
+</td>
+<td style="text-align:left;">
+I
 </td>
 <td style="text-align:right;">
-15.5
+266
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+O
 </td>
 <td style="text-align:right;">
-8
+243
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+E
 </td>
 <td style="text-align:right;">
-318.0
+177
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+U
+</td>
+<td style="text-align:right;">
+165
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+R
+</td>
+<td style="text-align:right;">
+163
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+N
+</td>
+<td style="text-align:right;">
+137
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+L
+</td>
+<td style="text-align:right;">
+112
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:right;">
+111
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p3
+</td>
+<td style="text-align:left;">
+S
+</td>
+<td style="text-align:right;">
+80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+E
+</td>
+<td style="text-align:right;">
+318
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+N
+</td>
+<td style="text-align:right;">
+182
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+S
+</td>
+<td style="text-align:right;">
+171
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+162
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+L
+</td>
+<td style="text-align:right;">
+162
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+I
+</td>
+<td style="text-align:right;">
+158
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+C
 </td>
 <td style="text-align:right;">
 150
 </td>
-<td style="text-align:right;">
-2.76
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
 </td>
-<td style="text-align:right;">
-3.520
-</td>
-<td style="text-align:right;">
-16.87
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-15.5
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-318.0
+<td style="text-align:left;">
+R
 </td>
 <td style="text-align:right;">
 150
 </td>
-<td style="text-align:right;">
-2.76
+</tr>
+<tr>
+<td style="text-align:left;">
+p4
+</td>
+<td style="text-align:left;">
+T
 </td>
 <td style="text-align:right;">
-3.520
-</td>
-<td style="text-align:right;">
-16.87
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+139
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-AMC Javelin
+p4
+</td>
+<td style="text-align:left;">
+O
 </td>
 <td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-304.0
-</td>
-<td style="text-align:right;">
-150
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.435
-</td>
-<td style="text-align:right;">
-17.30
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-304.0
-</td>
-<td style="text-align:right;">
-150
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.435
-</td>
-<td style="text-align:right;">
-17.30
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+132
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Camaro Z28
+p5
+</td>
+<td style="text-align:left;">
+E
 </td>
 <td style="text-align:right;">
-13.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-350.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.73
-</td>
-<td style="text-align:right;">
-3.840
-</td>
-<td style="text-align:right;">
-15.41
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-13.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-350.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.73
-</td>
-<td style="text-align:right;">
-3.840
-</td>
-<td style="text-align:right;">
-15.41
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+422
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Pontiac Firebird
+p5
+</td>
+<td style="text-align:left;">
+Y
 </td>
 <td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-400.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.845
-</td>
-<td style="text-align:right;">
-17.05
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-400.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.845
-</td>
-<td style="text-align:right;">
-17.05
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+364
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Fiat X1-9
+p5
+</td>
+<td style="text-align:left;">
+T
 </td>
 <td style="text-align:right;">
-27.3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-79.0
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-1.935
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-27.3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-79.0
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-1.935
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+253
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Porsche 914-2
+p5
+</td>
+<td style="text-align:left;">
+R
 </td>
 <td style="text-align:right;">
-26.0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.3
-</td>
-<td style="text-align:right;">
-91
-</td>
-<td style="text-align:right;">
-4.43
-</td>
-<td style="text-align:right;">
-2.140
-</td>
-<td style="text-align:right;">
-16.70
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-26.0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.3
-</td>
-<td style="text-align:right;">
-91
-</td>
-<td style="text-align:right;">
-4.43
-</td>
-<td style="text-align:right;">
-2.140
-</td>
-<td style="text-align:right;">
-16.70
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
+212
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Lotus Europa
+p5
+</td>
+<td style="text-align:left;">
+L
 </td>
 <td style="text-align:right;">
-30.4
+155
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p5
+</td>
+<td style="text-align:left;">
+H
 </td>
 <td style="text-align:right;">
-4
+137
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p5
+</td>
+<td style="text-align:left;">
+N
 </td>
 <td style="text-align:right;">
-95.1
+130
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p5
+</td>
+<td style="text-align:left;">
+D
+</td>
+<td style="text-align:right;">
+118
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+p5
+</td>
+<td style="text-align:left;">
+K
 </td>
 <td style="text-align:right;">
 113
 </td>
-<td style="text-align:right;">
-3.77
-</td>
-<td style="text-align:right;">
-1.513
-</td>
-<td style="text-align:right;">
-16.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-30.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-95.1
-</td>
-<td style="text-align:right;">
-113
-</td>
-<td style="text-align:right;">
-3.77
-</td>
-<td style="text-align:right;">
-1.513
-</td>
-<td style="text-align:right;">
-16.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
-</td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Ford Pantera L
+p5
 </td>
-<td style="text-align:right;">
-15.8
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-351.0
-</td>
-<td style="text-align:right;">
-264
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-3.170
-</td>
-<td style="text-align:right;">
-14.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-15.8
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-351.0
-</td>
-<td style="text-align:right;">
-264
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-3.170
-</td>
-<td style="text-align:right;">
-14.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-4
-</td>
-</tr>
-<tr>
 <td style="text-align:left;">
-Ferrari Dino
+A
 </td>
 <td style="text-align:right;">
-19.7
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-145.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.62
-</td>
-<td style="text-align:right;">
-2.770
-</td>
-<td style="text-align:right;">
-15.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-19.7
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-145.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.62
-</td>
-<td style="text-align:right;">
-2.770
-</td>
-<td style="text-align:right;">
-15.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-6
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Maserati Bora
-</td>
-<td style="text-align:right;">
-15.0
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-301.0
-</td>
-<td style="text-align:right;">
-335
-</td>
-<td style="text-align:right;">
-3.54
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-14.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-15.0
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-301.0
-</td>
-<td style="text-align:right;">
-335
-</td>
-<td style="text-align:right;">
-3.54
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-14.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Volvo 142E
-</td>
-<td style="text-align:right;">
-21.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-121.0
-</td>
-<td style="text-align:right;">
-109
-</td>
-<td style="text-align:right;">
-4.11
-</td>
-<td style="text-align:right;">
-2.780
-</td>
-<td style="text-align:right;">
-18.60
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-21.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-121.0
-</td>
-<td style="text-align:right;">
-109
-</td>
-<td style="text-align:right;">
-4.11
-</td>
-<td style="text-align:right;">
-2.780
-</td>
-<td style="text-align:right;">
-18.60
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+63
 </td>
 </tr>
 </tbody>
 </table>
 </div>
-<pre class="r"><code># Specify by percent
-kable(cbind(mtcars, mtcars), &quot;html&quot;) %&gt;%
+<p>So we have the # of occurences in each position laid out in a <em>tidy</em> format in one long rectangular dataframe. Now sprinkling some magic courtesy <code>ggplot</code></p>
+<div id="side-note-on-reordering-within-facets" class="section level3">
+<h3>Side note on reordering within facets</h3>
+<p><em>I tried my best to understand why I was unable to sort within each facet in spite of using <code>free_y</code>. Apparently that’s a known issue and a workaround has been discussed by <a href="https://github.com/dgrtwo/drlib/blob/master/R/reorder_within.R">David Robinson</a>, <a href="https://juliasilge.github.io/tidytext/reference/reorder_within.html">Julia Silger</a> and <a href="https://trinkerrstuff.wordpress.com/2016/12/23/ordering-categories-within-ggplot2-facets/">Tyler Rinker</a>. To achieve this, two more functions need to be created <code>reorder_within</code> and <code>scale_y_reordered</code></em></p>
+<pre class="r"><code>reorder_within &lt;- function(x, by, within, fun = mean, sep = &quot;___&quot;, ...) {
+  new_x &lt;- paste(x, within, sep = sep)
+  stats::reorder(new_x, by, FUN = fun)
+}
+
+scale_y_reordered &lt;- function(..., sep = &quot;___&quot;) {
+  reg &lt;- paste0(sep, &quot;.+$&quot;)
+  ggplot2::scale_y_discrete(labels = function(x) gsub(reg, &quot;&quot;, x), ...)
+}
+
+freq_table_long10 %&gt;% 
+  mutate(type = case_when(alpha %in% c(&quot;A&quot;,&quot;E&quot;,&quot;I&quot;,&quot;O&quot;,&quot;U&quot;) ~ &quot;vowel&quot;,
+                          T ~ &quot;consonant&quot;)) %&gt;% 
+  ggplot(aes(y = reorder_within(alpha, freq, position), x = freq))+
+  geom_col(aes(fill = type))+
+  scale_y_reordered()+
+  facet_wrap(~position, 
+             scales = &quot;free_y&quot;, 
+             ncol = 5)+
+  labs(x = &quot;Frequency&quot;, y = &quot;Letter&quot;,
+       title = &quot;Frequency of top 10 letters by position in Official Wordle list &quot;,
+       caption = &quot;D.S.Ramakant Raju\nwww.linkedin.com/in/dsramakant/&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>Aha! Things are starting to get more clearer. Highly common letters in the 1st position are <strong>S, C, B, T and P</strong> - notice there’s only 1 vowel (<strong>A</strong>) that occurs in the top 10. Vowels appear more frequently in the 2nd and 3rd positions. Last position has a higher occurrence of <strong>E, Y, T, R &amp; L</strong></p>
+</div>
+</div>
+<div id="which-words-can-be-the-best-worlde-openers" class="section level2">
+<h2>Which words can be the best Worlde openers?</h2>
+<p>Armed with the above knowledge, we now can filter out the commonly occurring words. Also I use a naive method to rank these words basis the occurrence of the letters. For instance, in the picture above, the word <strong>S A I N T</strong> seems to be a valid word comprising of the top occurring letters.</p>
+<p>Admittedly, I use a pretty crude method to determine the best openers. Known drawbacks of this methodology are:
+1. Doesn’t consider the <em>future path</em> of the word (number of steps to get to the right word)
+2. Only considers the rank of the letters and not the actual probability of occurrence</p>
+<p>With that out of the way, I was able to determine that there are <strong>39 words</strong> that can be formed with the top 5 occuring letters in each position. Scroll below to find out.</p>
+<pre class="r"><code>#function to pick the top 5 letters
+top5_selection &lt;- function(x)
+{x %&gt;% arrange(desc(x[2])) %&gt;% head(5) %&gt;% select(1)}
+
+#defining null table
+final_grid &lt;- tibble(ranking = 1:5)
+
+for(i in 2:length(freq_table)){
+  t &lt;- top5_selection(select(freq_table,1,all_of(i)))
+  
+  final_grid &lt;- cbind(final_grid,t)
+  
+  colnames(final_grid)[i] = paste0(&quot;p&quot;,i-1)
+  
+}
+
+topwords &lt;- position_word_list %&gt;% 
+filter(p1 %in% final_grid$p1,
+       p2 %in% final_grid$p2,
+       p3 %in% final_grid$p3,
+       p4 %in% final_grid$p4,
+       p5 %in% final_grid$p5) 
+
+#finding consolidated rank of each word
+topwords %&lt;&gt;%
+  rowwise() %&gt;% 
+  mutate(p1_rank = which(p1 == final_grid$p1),
+         p2_rank = which(p2 == final_grid$p2),
+         p3_rank = which(p3 == final_grid$p3),
+         p4_rank = which(p4 == final_grid$p4),
+         p5_rank = which(p5 == final_grid$p5))
+
+
+topwords2 &lt;- topwords %&gt;% 
+  transmute(word = paste0(p1,p2,p3,p4,p5),
+         rank = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %&gt;% 
+  arrange(rank)
+
+
+
+kable(topwords2, &quot;html&quot;, 
+      caption = &quot;Top 39 words&quot;) %&gt;%
     kable_styling() %&gt;%
-    scroll_box(width = &quot;100%&quot;, height = &quot;200px&quot;)</code></pre>
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:200px; overflow-x: scroll; width:100%; ">
+    scroll_box(width = &quot;50%&quot;, height = &quot;400px&quot;) %&gt;% 
+  kable_classic()</code></pre>
+<div class="lightable-classic" style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:50%;  font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
 <table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:final grid)Top 39 words
+</caption>
 <thead>
 <tr>
 <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+word
 </th>
 <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-mpg
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-cyl
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-disp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-hp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-drat
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-wt
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-qsec
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-vs
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-am
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-gear
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-carb
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-mpg
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-cyl
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-disp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-hp
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-drat
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-wt
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-qsec
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-vs
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-am
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-gear
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-carb
+rank
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-Mazda RX4
+SAINT
 </td>
 <td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.620
-</td>
-<td style="text-align:right;">
-16.46
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.620
-</td>
-<td style="text-align:right;">
-16.46
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+9
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Mazda RX4 Wag
+CRANE
 </td>
 <td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.875
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-21.0
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-160.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.90
-</td>
-<td style="text-align:right;">
-2.875
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+9
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Datsun 710
+COAST
 </td>
 <td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-108.0
-</td>
-<td style="text-align:right;">
-93
-</td>
-<td style="text-align:right;">
-3.85
-</td>
-<td style="text-align:right;">
-2.320
-</td>
-<td style="text-align:right;">
-18.61
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-108.0
-</td>
-<td style="text-align:right;">
-93
-</td>
-<td style="text-align:right;">
-3.85
-</td>
-<td style="text-align:right;">
-2.320
-</td>
-<td style="text-align:right;">
-18.61
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+11
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Hornet 4 Drive
+BRINE
 </td>
 <td style="text-align:right;">
-21.4
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-258.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.215
-</td>
-<td style="text-align:right;">
-19.44
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-21.4
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-258.0
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.215
-</td>
-<td style="text-align:right;">
-19.44
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
+11
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Hornet Sportabout
+CEASE
 </td>
 <td style="text-align:right;">
-18.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-18.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-17.02
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+11
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Valiant
+CRONE
 </td>
 <td style="text-align:right;">
-18.1
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-225.0
-</td>
-<td style="text-align:right;">
-105
-</td>
-<td style="text-align:right;">
-2.76
-</td>
-<td style="text-align:right;">
-3.460
-</td>
-<td style="text-align:right;">
-20.22
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-18.1
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-225.0
-</td>
-<td style="text-align:right;">
-105
-</td>
-<td style="text-align:right;">
-2.76
-</td>
-<td style="text-align:right;">
-3.460
-</td>
-<td style="text-align:right;">
-20.22
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
+11
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Duster 360
+CAUSE
 </td>
 <td style="text-align:right;">
-14.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.21
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-15.84
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-14.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-360.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.21
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-15.84
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 240D
+CRIER
 </td>
 <td style="text-align:right;">
-24.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-146.7
-</td>
-<td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-3.69
-</td>
-<td style="text-align:right;">
-3.190
-</td>
-<td style="text-align:right;">
-20.00
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-24.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-146.7
-</td>
-<td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-3.69
-</td>
-<td style="text-align:right;">
-3.190
-</td>
-<td style="text-align:right;">
-20.00
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 230
+BRINY
 </td>
 <td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-140.8
-</td>
-<td style="text-align:right;">
-95
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.150
-</td>
-<td style="text-align:right;">
-22.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-22.8
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-140.8
-</td>
-<td style="text-align:right;">
-95
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.150
-</td>
-<td style="text-align:right;">
-22.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 280
+BOAST
 </td>
 <td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.30
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.30
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 280C
+TAINT
 </td>
 <td style="text-align:right;">
-17.8
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-17.8
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-167.6
-</td>
-<td style="text-align:right;">
-123
-</td>
-<td style="text-align:right;">
-3.92
-</td>
-<td style="text-align:right;">
-3.440
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 450SE
+CRONY
 </td>
 <td style="text-align:right;">
-16.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-4.070
-</td>
-<td style="text-align:right;">
-17.40
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-16.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-4.070
-</td>
-<td style="text-align:right;">
-17.40
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 450SL
+TEASE
 </td>
 <td style="text-align:right;">
-17.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.730
-</td>
-<td style="text-align:right;">
-17.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-17.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.730
-</td>
-<td style="text-align:right;">
-17.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
+13
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Merc 450SLC
+POISE
 </td>
 <td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.780
-</td>
-<td style="text-align:right;">
-18.00
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-275.8
-</td>
-<td style="text-align:right;">
-180
-</td>
-<td style="text-align:right;">
-3.07
-</td>
-<td style="text-align:right;">
-3.780
-</td>
-<td style="text-align:right;">
-18.00
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-3
+13
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Cadillac Fleetwood
+TOAST
 </td>
 <td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-472.0
-</td>
-<td style="text-align:right;">
-205
-</td>
-<td style="text-align:right;">
-2.93
-</td>
-<td style="text-align:right;">
-5.250
-</td>
-<td style="text-align:right;">
-17.98
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-472.0
-</td>
-<td style="text-align:right;">
-205
-</td>
-<td style="text-align:right;">
-2.93
-</td>
-<td style="text-align:right;">
-5.250
-</td>
-<td style="text-align:right;">
-17.98
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+13
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Lincoln Continental
+PAINT
 </td>
 <td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-460.0
-</td>
-<td style="text-align:right;">
-215
-</td>
-<td style="text-align:right;">
-3.00
-</td>
-<td style="text-align:right;">
-5.424
-</td>
-<td style="text-align:right;">
-17.82
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-10.4
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-460.0
-</td>
-<td style="text-align:right;">
-215
-</td>
-<td style="text-align:right;">
-3.00
-</td>
-<td style="text-align:right;">
-5.424
-</td>
-<td style="text-align:right;">
-17.82
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+13
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Chrysler Imperial
+BOOST
 </td>
 <td style="text-align:right;">
-14.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-440.0
-</td>
-<td style="text-align:right;">
-230
-</td>
-<td style="text-align:right;">
-3.23
-</td>
-<td style="text-align:right;">
-5.345
-</td>
-<td style="text-align:right;">
-17.42
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-14.7
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-440.0
-</td>
-<td style="text-align:right;">
-230
-</td>
-<td style="text-align:right;">
-3.23
-</td>
-<td style="text-align:right;">
-5.345
-</td>
-<td style="text-align:right;">
-17.42
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+14
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Fiat 128
+POINT
 </td>
 <td style="text-align:right;">
-32.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-78.7
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-2.200
-</td>
-<td style="text-align:right;">
-19.47
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-32.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-78.7
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-2.200
-</td>
-<td style="text-align:right;">
-19.47
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+14
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Honda Civic
+COUNT
 </td>
 <td style="text-align:right;">
-30.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-75.7
-</td>
-<td style="text-align:right;">
-52
-</td>
-<td style="text-align:right;">
-4.93
-</td>
-<td style="text-align:right;">
-1.615
-</td>
-<td style="text-align:right;">
-18.52
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-30.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-75.7
-</td>
-<td style="text-align:right;">
-52
-</td>
-<td style="text-align:right;">
-4.93
-</td>
-<td style="text-align:right;">
-1.615
-</td>
-<td style="text-align:right;">
-18.52
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+14
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Toyota Corolla
+PRONE
 </td>
 <td style="text-align:right;">
-33.9
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-71.1
-</td>
-<td style="text-align:right;">
-65
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-1.835
-</td>
-<td style="text-align:right;">
-19.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-33.9
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-71.1
-</td>
-<td style="text-align:right;">
-65
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-1.835
-</td>
-<td style="text-align:right;">
-19.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+14
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Toyota Corona
+BEAST
 </td>
 <td style="text-align:right;">
-21.5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.1
-</td>
-<td style="text-align:right;">
-97
-</td>
-<td style="text-align:right;">
-3.70
-</td>
-<td style="text-align:right;">
-2.465
-</td>
-<td style="text-align:right;">
-20.01
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-21.5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.1
-</td>
-<td style="text-align:right;">
-97
-</td>
-<td style="text-align:right;">
-3.70
-</td>
-<td style="text-align:right;">
-2.465
-</td>
-<td style="text-align:right;">
-20.01
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-1
+14
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Dodge Challenger
+PRINT
 </td>
 <td style="text-align:right;">
-15.5
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-318.0
-</td>
-<td style="text-align:right;">
-150
-</td>
-<td style="text-align:right;">
-2.76
-</td>
-<td style="text-align:right;">
-3.520
-</td>
-<td style="text-align:right;">
-16.87
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-15.5
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-318.0
-</td>
-<td style="text-align:right;">
-150
-</td>
-<td style="text-align:right;">
-2.76
-</td>
-<td style="text-align:right;">
-3.520
-</td>
-<td style="text-align:right;">
-16.87
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+15
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-AMC Javelin
+PAUSE
 </td>
 <td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-304.0
-</td>
-<td style="text-align:right;">
-150
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.435
-</td>
-<td style="text-align:right;">
-17.30
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-304.0
-</td>
-<td style="text-align:right;">
-150
-</td>
-<td style="text-align:right;">
-3.15
-</td>
-<td style="text-align:right;">
-3.435
-</td>
-<td style="text-align:right;">
-17.30
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+15
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Camaro Z28
+TAUNT
 </td>
 <td style="text-align:right;">
-13.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-350.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.73
-</td>
-<td style="text-align:right;">
-3.840
-</td>
-<td style="text-align:right;">
-15.41
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-13.3
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-350.0
-</td>
-<td style="text-align:right;">
-245
-</td>
-<td style="text-align:right;">
-3.73
-</td>
-<td style="text-align:right;">
-3.840
-</td>
-<td style="text-align:right;">
-15.41
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
+15
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Pontiac Firebird
+PROSE
 </td>
 <td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-400.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.845
-</td>
-<td style="text-align:right;">
-17.05
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-19.2
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-400.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.08
-</td>
-<td style="text-align:right;">
-3.845
-</td>
-<td style="text-align:right;">
-17.05
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-2
+15
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Fiat X1-9
+CREST
 </td>
 <td style="text-align:right;">
-27.3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-79.0
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-1.935
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-27.3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-79.0
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-4.08
-</td>
-<td style="text-align:right;">
-1.935
-</td>
-<td style="text-align:right;">
-18.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1
+15
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Porsche 914-2
+CRUST
 </td>
 <td style="text-align:right;">
-26.0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.3
-</td>
-<td style="text-align:right;">
-91
-</td>
-<td style="text-align:right;">
-4.43
-</td>
-<td style="text-align:right;">
-2.140
-</td>
-<td style="text-align:right;">
-16.70
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-26.0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-120.3
-</td>
-<td style="text-align:right;">
-91
-</td>
-<td style="text-align:right;">
-4.43
-</td>
-<td style="text-align:right;">
-2.140
-</td>
-<td style="text-align:right;">
-16.70
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
+16
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Lotus Europa
+BRIAR
 </td>
 <td style="text-align:right;">
-30.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-95.1
-</td>
-<td style="text-align:right;">
-113
-</td>
-<td style="text-align:right;">
-3.77
-</td>
-<td style="text-align:right;">
-1.513
-</td>
-<td style="text-align:right;">
-16.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-30.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-95.1
-</td>
-<td style="text-align:right;">
-113
-</td>
-<td style="text-align:right;">
-3.77
-</td>
-<td style="text-align:right;">
-1.513
-</td>
-<td style="text-align:right;">
-16.90
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2
+16
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Ford Pantera L
+BOULE
 </td>
 <td style="text-align:right;">
-15.8
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-351.0
-</td>
-<td style="text-align:right;">
-264
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-3.170
-</td>
-<td style="text-align:right;">
-14.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-15.8
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-351.0
-</td>
-<td style="text-align:right;">
-264
-</td>
-<td style="text-align:right;">
-4.22
-</td>
-<td style="text-align:right;">
-3.170
-</td>
-<td style="text-align:right;">
-14.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-4
+16
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Ferrari Dino
+POESY
 </td>
 <td style="text-align:right;">
-19.7
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-145.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.62
-</td>
-<td style="text-align:right;">
-2.770
-</td>
-<td style="text-align:right;">
-15.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-19.7
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-145.0
-</td>
-<td style="text-align:right;">
-175
-</td>
-<td style="text-align:right;">
-3.62
-</td>
-<td style="text-align:right;">
-2.770
-</td>
-<td style="text-align:right;">
-15.50
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-6
+16
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Maserati Bora
+CRUEL
 </td>
 <td style="text-align:right;">
-15.0
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-301.0
-</td>
-<td style="text-align:right;">
-335
-</td>
-<td style="text-align:right;">
-3.54
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-14.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-15.0
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-301.0
-</td>
-<td style="text-align:right;">
-335
-</td>
-<td style="text-align:right;">
-3.54
-</td>
-<td style="text-align:right;">
-3.570
-</td>
-<td style="text-align:right;">
-14.60
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-8
+16
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Volvo 142E
+PRUNE
 </td>
 <td style="text-align:right;">
-21.4
+16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRUNT
 </td>
 <td style="text-align:right;">
-4
+16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TRUER
 </td>
 <td style="text-align:right;">
-121.0
+17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TREAT
 </td>
 <td style="text-align:right;">
-109
+18
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TRIAL
 </td>
 <td style="text-align:right;">
-4.11
+18
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TRUST
 </td>
 <td style="text-align:right;">
-2.780
+18
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TRULY
 </td>
 <td style="text-align:right;">
-18.60
+19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TROLL
 </td>
 <td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-21.4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-121.0
-</td>
-<td style="text-align:right;">
-109
-</td>
-<td style="text-align:right;">
-4.11
-</td>
-<td style="text-align:right;">
-2.780
-</td>
-<td style="text-align:right;">
-18.60
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-2
+20
 </td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>There we have it. My take on the best opening words.</p>
+<p>I’ve used words such as <strong>SAINT, CRANE, COAST</strong> etc and they’ve been reasonably useful to me.</p>
+<p>Which are your favourite opening words? Please do leave a comment to let me know!</p>
 </div>
