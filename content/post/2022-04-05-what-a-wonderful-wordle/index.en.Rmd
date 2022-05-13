@@ -232,6 +232,7 @@ Admittedly, I use a pretty crude method to determine the best openers. Known dra
 
 With that out of the way, I was able to determine that there are **39 words** that can be formed with the top 5 occurring letters in each position. I've created a **score** that is determined by the rank of each letter within its position. For instance, **S A I N T** gets a score of 9 by summing up 1 (S in first position) + 1 (A in second position) + 2 (I in third) + 2 (N in fourth) + 3 (T in fifth). The lower the score, the higher the frequency of occurrences. Scroll below to read the rest of the words. 
 
+
 ```{r final grid, warning=FALSE}
 
 #function to pick the top 5 letters

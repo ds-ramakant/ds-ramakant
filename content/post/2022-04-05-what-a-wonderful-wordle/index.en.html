@@ -1343,7 +1343,7 @@ freq_table_long10 %&gt;%
 <p>Admittedly, I use a pretty crude method to determine the best openers. Known drawbacks of this methodology are:
 1. Doesn’t consider the <em>future path</em> of the word (number of steps to get to the right word)
 2. Only considers the rank of the letters and not the actual probability of occurrence</p>
-<p>With that out of the way, I was able to determine that there are <strong>39 words</strong> that can be formed with the top 5 occuring letters in each position. Scroll below to find out.</p>
+<p>With that out of the way, I was able to determine that there are <strong>39 words</strong> that can be formed with the top 5 occurring letters in each position. I’ve created a <strong>score</strong> that is determined by the rank of each letter within its position. For instance, <strong>S A I N T</strong> gets a score of 9 by summing up 1 (S in first position) + 1 (A in second position) + 2 (I in third) + 2 (N in fourth) + 3 (T in fifth). The lower the score, the higher the frequency of occurrences. Scroll below to read the rest of the words.</p>
 <pre class="r"><code>#function to pick the top 5 letters
 top5_selection &lt;- function(x)
 {x %&gt;% arrange(desc(x[2])) %&gt;% head(5) %&gt;% select(1)}
@@ -1367,7 +1367,7 @@ filter(p1 %in% final_grid$p1,
        p4 %in% final_grid$p4,
        p5 %in% final_grid$p5) 
 
-#finding consolidated rank of each word
+#finding consolidated score of each word
 topwords %&lt;&gt;%
   rowwise() %&gt;% 
   mutate(p1_rank = which(p1 == final_grid$p1),
@@ -1379,10 +1379,8 @@ topwords %&lt;&gt;%
 
 topwords2 &lt;- topwords %&gt;% 
   transmute(word = paste0(p1,p2,p3,p4,p5),
-         rank = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %&gt;% 
-  arrange(rank)
-
-
+         score = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %&gt;% 
+  arrange(score)
 
 kable(topwords2, &quot;html&quot;, 
       caption = &quot;Top 39 words&quot;) %&gt;%
@@ -1400,7 +1398,7 @@ kable(topwords2, &quot;html&quot;,
 word
 </th>
 <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-rank
+score
 </th>
 </tr>
 </thead>
