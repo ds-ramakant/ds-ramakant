@@ -230,7 +230,7 @@ Admittedly, I use a pretty crude method to determine the best openers. Known dra
 1. Doesn't consider the *future path* of the word (number of steps to get to the right word)
 2. Only considers the rank of the letters and not the actual probability of occurrence
 
-With that out of the way, I was able to determine that there are **39 words** that can be formed with the top 5 occuring letters in each position. Scroll below to find out. 
+With that out of the way, I was able to determine that there are **39 words** that can be formed with the top 5 occurring letters in each position. I've created a **score** that is determined by the rank of each letter within its position. For instance, **S A I N T** gets a score of 9 by summing up 1 (S in first position) + 1 (A in second position) + 2 (I in third) + 2 (N in fourth) + 3 (T in fifth). The lower the score, the higher the frequency of occurrences. Scroll below to read the rest of the words. 
 
 ```{r final grid, warning=FALSE}
 
@@ -257,7 +257,7 @@ filter(p1 %in% final_grid$p1,
        p4 %in% final_grid$p4,
        p5 %in% final_grid$p5) 
 
-#finding consolidated rank of each word
+#finding consolidated score of each word
 topwords %<>%
   rowwise() %>% 
   mutate(p1_rank = which(p1 == final_grid$p1),
@@ -269,10 +269,8 @@ topwords %<>%
 
 topwords2 <- topwords %>% 
   transmute(word = paste0(p1,p2,p3,p4,p5),
-         rank = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %>% 
-  arrange(rank)
-
-
+         score = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %>% 
+  arrange(score)
 
 kable(topwords2, "html", 
       caption = "Top 39 words") %>%
