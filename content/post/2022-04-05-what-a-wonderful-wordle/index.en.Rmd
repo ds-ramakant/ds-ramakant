@@ -52,9 +52,7 @@ In my opinion, one of the reasons for the game going viral is the way the result
 [Arthur Hotlz's blog](https://rviews.rstudio.com/2022/02/21/wordle-data-analysis/ ) is a good place to start for extracting and loading the Official Wordle list. After parsing and cleaning the data, here's all the words broken down into a single rectangular dataframe `word_list` 
 
 ```{r extracting and cleaning,  warning=FALSE}
-
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
-
 suppressMessages({ 
 library(httr)
 library(dplyr)
@@ -65,6 +63,7 @@ library(scales)
 library(tidyr)
 library(tibble)
 library(forcats)
+library(knitr)
 library(kableExtra)
 theme_set(theme_light())
 })
@@ -83,7 +82,6 @@ word_list = substr(
   data.frame() %>%
   select(word = 1) %>%
   mutate(word = toupper(word))
-
 head(word_list,10)
 ```
 
@@ -91,16 +89,12 @@ Modification to the above is another dataframe with each of the characters separ
 
 *The line `select(-x)` removes the empty column that is created due to the `seperate()` function*
 ```{r positio_word_list}
-
 position_word_list <- word_list %>% 
   separate(word, 
            sep = "", 
            into = c("x","p1","p2","p3","p4","p5")) %>% 
   select(-x)
-
 head(position_word_list,10)
-
-
 ```
 
 Now onto some frequency analysis. Here's a breakdown of all the letters in the wordle list sorted by number of occurrences stored in `letter_list` and creating a simple bar graph. 
@@ -127,8 +121,6 @@ letter_list %>% ungroup() %>%
             size = 3)+
   labs(x = "Letter", y = "Frequency",
        title = "Frequency of letters in Official Wordle list")
-
-
 ```
 This is interesting. Now I'm curious to know the top words by each position. To do this, I created a single table  called `freq_table` that provides me with the frequency of occurrences by position for each letter. To iterate this process across all the 5 places, I used a `for` loop. Output is generated via the `kableExtra` package which provides a neat scrollable window
 
@@ -138,7 +130,6 @@ This is interesting. Now I'm curious to know the top words by each position. To 
 freq_table <- tibble(alpha = LETTERS)
 
 for(i in 1:5){
-  
     test <- position_word_list %>% 
     select(all_of(i)) %>%
 # group_by_at() used for column index ID
@@ -155,23 +146,19 @@ for(i in 1:5){
 #renaming column name to reflect the position number
     colnames(freq_table)[1+i] = paste0("p",i)
     rm(test)
-
 }
-
 #replacing NA with zero
 freq_table[is.na(freq_table)] <- 0 
-
 #output using kable's scrollable window 
-kable(freq_table, "html", 
+kable(freq_table, 
+      format = "html", 
       caption = "Frequency Table") %>%
     kable_styling() %>%
     scroll_box(width = "70%", height = "300px") %>% 
   kable_classic()
-
 ```
 This table looks good. However, for my visualisation, I want to plot the top 10 letters in each position. For this, I'm going to use `pivot_longer()` to make it easier to generate the viz. 
 ```{r postion wise graph, warning=FALSE}
-
 freq_table_long10 <- freq_table %>% 
   pivot_longer(cols = !alpha, names_to = "position", values_to = "freq") %>% 
   select(position, alpha, freq) %>% 
@@ -179,13 +166,12 @@ freq_table_long10 <- freq_table %>%
   group_by(position) %>% 
   slice_head(n = 10) %>% ungroup
 
-kable(freq_table_long10, "html", 
-      caption = "Top 10 letters within \neach position") %>%
+kable(freq_table_long10, 
+      format = "html", 
+      caption = "Top 10 letters within each position") %>%
     kable_styling() %>%
     scroll_box(height = "200px") %>% 
   kable_classic()
-
-
 ```
 So we have the # of occurences in each position laid out in a *tidy* format in one long rectangular dataframe. Now sprinkling some magic courtesy `ggplot` 
 
@@ -215,8 +201,6 @@ freq_table_long10 %>%
   labs(x = "Frequency", y = "Letter",
        title = "Frequency of top 10 letters by position in Official Wordle list ",
        caption = "D.S.Ramakant Raju\nwww.linkedin.com/in/dsramakant/")
-
-
 ```
 
 Aha! Things are starting to get more clearer. Highly common letters in the 1st position are **S, C, B, T and P** - notice there's only 1 vowel (**A**) that occurs in the top 10. Vowels appear more frequently in the 2nd and 3rd positions. Last position has a higher occurrence of **E, Y, T, R & L**
@@ -227,6 +211,7 @@ Aha! Things are starting to get more clearer. Highly common letters in the 1st p
 Armed with the above knowledge, we now can filter out the commonly occurring words. Also I use a naive method to rank these words basis the occurrence of the letters. For instance, in the picture above, the word **S A I N T** seems to be a valid word comprising of the top occurring letters. 
 
 Admittedly, I use a pretty crude method to determine the best openers. Known drawbacks of this methodology are:
+
 1. Doesn't consider the *future path* of the word (number of steps to get to the right word)
 2. Only considers the rank of the letters and not the actual probability of occurrence
 
@@ -234,23 +219,17 @@ With that out of the way, I was able to determine that there are **39 words** th
 
 
 ```{r final grid, warning=FALSE}
-
 #function to pick the top 5 letters
 top5_selection <- function(x)
 {x %>% arrange(desc(x[2])) %>% head(5) %>% select(1)}
-
 #defining null table
 final_grid <- tibble(ranking = 1:5)
 
 for(i in 2:length(freq_table)){
   t <- top5_selection(select(freq_table,1,all_of(i)))
-  
   final_grid <- cbind(final_grid,t)
-  
   colnames(final_grid)[i] = paste0("p",i-1)
-  
 }
-
 topwords <- position_word_list %>% 
 filter(p1 %in% final_grid$p1,
        p2 %in% final_grid$p2,
@@ -267,18 +246,17 @@ topwords %<>%
          p4_rank = which(p4 == final_grid$p4),
          p5_rank = which(p5 == final_grid$p5))
 
-
 topwords2 <- topwords %>% 
   transmute(word = paste0(p1,p2,p3,p4,p5),
          score = sum(p1_rank, p2_rank,p3_rank, p4_rank, p5_rank)) %>% 
   arrange(score)
 
-kable(topwords2, "html", 
+kable(topwords2, 
+      format = "html",
       caption = "Top 39 words") %>%
     kable_styling() %>%
     scroll_box(width = "50%", height = "400px") %>% 
   kable_classic()
-
 ```
 
 There we have it. My take on the best opening words. 
