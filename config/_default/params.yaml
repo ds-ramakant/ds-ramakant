@@ -9,7 +9,7 @@
 theme: coffee #default = minimal
 day_night: true
 font: ''
-font_size: L
+font_size: M #default = L
 
 # SEO
 
