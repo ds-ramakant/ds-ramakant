@@ -1,0 +1,42 @@
+---
+title: TidyTuesday NYT Bestsellers list
+author: ''
+date: '2022-06-01'
+slug: tidytuesday-nyt-bestsellers-list
+categories:
+  - tidytuesday
+  - R
+tags:
+  - dataviz
+  - tidytuesday
+  - ggplot
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-08-22T10:32:21+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r extracting and cleaning, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+suppressMessages({
+  library(tidyverse)
+  library(scales)
+  library(knitr)
+  library(tidytuesdayR)
+})
+
+data <- read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-05-10/nyt_titles.tsv')
+
+```
+```{r EDA}
+data %>% 
+  group_by(year) %>% 
+  count() %>% plot()
+```
+
