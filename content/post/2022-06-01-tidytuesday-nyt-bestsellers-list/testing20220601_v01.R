@@ -4,6 +4,8 @@ library(knitr)
 library(tidytuesdayR)
 library(forcats)
 library(lubridate)
+library(RColorBrewer)
+
 
 data <- read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-05-10/nyt_titles.tsv')
 
@@ -16,6 +18,14 @@ data %>%
   summarise(n = n_distinct(title)) %>% 
   ggplot(aes(x = decade, y = n))+
   geom_bar(stat = "identity")
+
+#longevity; number of weeks spent by 1st rank books on the charts
+data %>% 
+  mutate(decade = factor(10*year %/% 10)) %>% 
+  filter(best_rank==1, year<2020) %>% 
+  group_by(decade) %>% 
+  summarise(avg_weeks = mean(total_weeks),
+            no_of_rank1 = n_distinct(title))
 
 data %>% 
   mutate(decade = factor(10*year %/% 10)) %>% 
@@ -115,7 +125,8 @@ data %>%
   filter(best_rank==1,year<2020, total_weeks<150) %>% 
   mutate(decade = factor(10*year %/% 10)) %>% 
   ggplot(aes(x = debut_rank, y  = total_weeks))+
-  geom_point(aes(color = decade, group = debut_rank))+
+  geom_point(aes(color = decade, group = debut_rank), 
+             alpha = 0.5)+
   facet_grid(~decade)
 
 #seasonality
@@ -183,3 +194,124 @@ data %>%
   #https://stackoverflow.com/a/40600861/7938068
   geom_smooth(se = T) 
 
+
+
+# theming the final graphs ------------------------------------------------------------
+
+#changing facet labels as shown here https://ggplot2.tidyverse.org/reference/as_labeller.html
+facet_labels <- as_labeller(c(`1930`= "1930 to 1939",
+                              `1940`= "1940 to 1949",
+                              `1950`= "1950 to 1959",
+                              `1960`= "1960 to 1969",
+                              `1970`= "1970 to 1979",
+                              `1980`= "1980 to 1989",
+                              `1990`= "1990 to 1999",
+                              `2000`= "2000 to 2009",
+                              `2010`= "2010 to 2019"))
+
+
+#annotations for individual facet as discussed here https://stackoverflow.com/a/11889798/7938068
+annot_x <- data.frame(debut_rank = 5, 
+                      total_weeks = 111,
+                      lab = "Each dot\n is a book",
+                      decade = 1940)
+
+graph1 <- data %>% 
+  filter(best_rank==1,year<2020) %>% 
+  mutate(decade = factor(10*year %/% 10)) %>% 
+  ggplot(aes(x = debut_rank, y  = total_weeks))+
+  geom_point(aes(color = decade, group = debut_rank))+
+  facet_grid(~decade ,labeller = facet_labels)
+
+showtext_begin()
+
+
+
+graph1+
+  theme_minimal(base_family = "Open Sans")+
+  scale_color_brewer(palette = "Paired")+
+  labs(title = "Longevity of NYT bestsellers has been decreasing", 
+       subtitle = "Analysis of books that reached highest of #1 on the NYT chart tells us that starting from the 1950s, the bestsellers have reduced their longevity - or time spent on the chart.\nFor instance, the top ranked books released in the 50s spent around 52 weeks on the chart while in contrast by the 2010s, they only spend 10 weeks.",
+       caption = "TidyTuesday Week 19, 2022\n Prepared by D.S.Ramakant Raju, www.ds-ramakant.com",
+       x = "Rank of title on debut week",
+       y = "Number of weeks on the bestsellers list")+
+  theme(panel.border = element_rect(color = "#2b2b2b", 
+                                    fill = NA), #borders for each facet panel
+        legend.position = "none", #removing legend
+        strip.text = element_text(face = "italic"),
+        panel.grid.major.x = element_line(linetype = "dotted", 
+                                          color = "black"),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        plot.caption = element_text(size = 8),
+        plot.subtitle = element_text(size = 8)) +
+  scale_y_continuous(breaks = seq(from = 25, to = 175, by = 25))+
+  #annotations by default is applied to all facets
+  #for individual facet annotations, check https://stackoverflow.com/a/11889798/7938068
+  geom_text(data = annot_x, 
+            aes(x = debut_rank, y = total_weeks, 
+                family = "Open Sans", alpha = 0.8,
+                hjust = -0.2, vjust = -0.2),
+            label = annot_x$lab
+            )
+
+showtext_end()  
+
+# intsalling new fonts ----------------------------------------------------
+
+
+#extra font package is not working
+# #loading fonts 
+# #https://stackoverflow.com/a/68642855/7938068
+# install.packages("extrafont")
+# install.packages("remote")
+# library(extrafont)
+# remotes::install_version("Rttf2pt1", version = "1.3.8")
+# font_import() #this is not working
+# loadfonts(device = "win")
+# #trying another package called showext
+# #https://cran.rstudio.com/web/packages/showtext/vignettes/introduction.html
+
+#only showtext package is working
+
+install.packages("showtext")
+library(showtext)
+showtext_auto()
+font_add(family = "Open Sans", 
+         regular = "OpenSans-CondLight.ttf", 
+         italic = "OpenSans-CondLightItalic.ttf", 
+         bold = "OpenSans-CondBold.ttf")
+font_paths()
+
+font_families()
+font_families_google()
+font_files()
+
+
+
+
+# some random chunk to tst fonts ------------------------------------------
+
+
+
+#https://www.r-bloggers.com/2013/12/using-system-fonts-in-r-graphs/
+library(showtext)
+
+wd = setwd(tempdir())
+download.file("http://fontpro.com/download-family.php?file=35701",
+              "merienda-r.ttf", mode="wb")
+download.file("http://fontpro.com/download-family.php?file=35700",
+              "merienda-b.ttf", mode="wb")
+font.add("merienda",
+         regular = "merienda-r.ttf",
+         bold = "merienda-b.ttf")
+setwd(wd)
+
+pdf("showtext-ex2.pdf", 7, 4)
+plot(1, type = "n", xlab = "", ylab = "")
+showtext.begin()
+par(family = "merienda")
+text(1, 1.2, "R can use this font!", cex = 2)
+text(1, 0.8, "And in Bold font face!", font = 2, cex = 2)
+showtext.end()
+dev.off()
