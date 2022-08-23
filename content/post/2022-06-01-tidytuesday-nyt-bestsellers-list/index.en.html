@@ -1,0 +1,187 @@
+---
+title: "TidyTuesday NYT Bestsellers list"
+author: ''
+date: '2022-06-01'
+slug: tidytuesday-nyt-bestsellers-list
+categories:
+- tidytuesday
+- R
+tags:
+- dataviz
+- tidytuesday
+- ggplot
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-06-22T10:32:21+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="tidy-tuesday-week-19-2022" class="section level2">
+<h2>Tidy Tuesday, Week 19 (2022)</h2>
+<p>“Learn by practice!” is a maxim that every coder/analyst agrees upon. One of the admirable initiatives by the R/ RStudio community is <a href="https://github.com/rfordatascience/tidytuesday">Tidy Tuesday</a> - every week a new dataset is released for enthusiasts to dig into. A few days back, an interesting dataset caught my eye - <a href="https://github.com/rfordatascience/tidytuesday/blob/master/data/2022/2022-05-10/readme.md">NYT’s Bestsellers List</a> from 1930 to 2021. This one was particularly unique as it mirrored a lot of projects that I’ve been doing on the OTT side as well. So I cracked my knuckles and jumped right in!</p>
+</div>
+<div id="objective" class="section level2">
+<h2>Objective</h2>
+<ol style="list-style-type: decimal">
+<li>Understanding longevity &amp; seasonality of how books track on the NYT bestseller’s list</li>
+<li>Deeper understanding of using customizing themes and fonts on the ggplot package</li>
+</ol>
+<p>Starting off by loading the data and the libraries</p>
+<pre class="r"><code>knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+suppressMessages({
+  library(tidyverse)
+  library(scales)
+  library(knitr)
+  library(tidytuesdayR)
+  library(forcats)
+  library(lubridate)
+  library(RColorBrewer)
+})
+
+data &lt;- read_tsv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-05-10/nyt_titles.tsv&#39;, show_col_types = F)
+
+glimpse(data)</code></pre>
+<pre><code>## Rows: 7,431
+## Columns: 8
+## $ id          &lt;dbl&gt; 0, 1, 10, 100, 1000, 1001, 1002, 1003, 1004, 1005, 1006, 1~
+## $ title       &lt;chr&gt; &quot;\&quot;H\&quot; IS FOR HOMICIDE&quot;, &quot;\&quot;I\&quot; IS FOR INNOCENT&quot;, &quot;&#39;&#39;G&#39;&#39; I~
+## $ author      &lt;chr&gt; &quot;Sue Grafton&quot;, &quot;Sue Grafton&quot;, &quot;Sue Grafton&quot;, &quot;W. Bruce Cam~
+## $ year        &lt;dbl&gt; 1991, 1992, 1990, 2012, 2006, 2016, 1985, 1994, 2002, 1999~
+## $ total_weeks &lt;dbl&gt; 15, 11, 6, 1, 1, 3, 16, 5, 4, 1, 3, 2, 11, 6, 9, 8, 1, 1, ~
+## $ first_week  &lt;date&gt; 1991-05-05, 1992-04-26, 1990-05-06, 2012-05-27, 2006-02-1~
+## $ debut_rank  &lt;dbl&gt; 1, 14, 4, 3, 11, 1, 9, 7, 7, 12, 13, 5, 12, 2, 11, 13, 2, ~
+## $ best_rank   &lt;dbl&gt; 2, 2, 8, 14, 14, 7, 2, 10, 12, 17, 13, 13, 8, 5, 5, 11, 4,~</code></pre>
+<p>Quick EDA tells us that there the number of books in the #1 spot each year during the 50s have been increasing while the number of weeks they’ve spent on the NYT list has been decreasing. 2020-21 is excluded as I’m breaking up the period into decades for easy analysis</p>
+<pre class="r"><code>data %&gt;% 
+  mutate(decade = factor(10*year %/% 10)) %&gt;% 
+  filter(best_rank==1, year&lt;2020) %&gt;% 
+  group_by(decade) %&gt;% 
+  summarise(avg_weeks = mean(total_weeks),
+            no_of_rank1 = n_distinct(title))</code></pre>
+<pre><code>## # A tibble: 9 x 3
+##   decade avg_weeks no_of_rank1
+##   &lt;fct&gt;      &lt;dbl&gt;       &lt;int&gt;
+## 1 1930        17.1          74
+## 2 1940        30.1          59
+## 3 1950        52.4          35
+## 4 1960        45.7          31
+## 5 1970        38.6          46
+## 6 1980        29.5          78
+## 7 1990        25.7          99
+## 8 2000        12.5         220
+## 9 2010        10.3         306</code></pre>
+<p>This is a fantastic starting point. Intuitively, this makes a lot of sense. There’s far more competition for the #1 spot in the last 20 years which is driving down the longevity. Compare the 50’s to the 2010’s and the trend is hard to miss. This table is only for the books that made it to the #1 position. But how about the rest of the other books? A visual representation draws the same conclusion more elegantly.</p>
+<p>Hat-tip to a few outstanding viz I came across while researching the NYT theme. <a href="https://rud.is/b/2016/03/16/supreme-annotations/">Bob Rudis’ Supreme Annotations</a> and <a href="https://rsangole.netlify.app/posts/2021-04-13-30-day-chart-challenge/2021-04-13-30-day-chart-challenge">Rahul Sangole’s Visualizing Correlations</a></p>
+<pre class="r"><code>#loading fonts that resemble the NYT viz
+#inspired by https://rud.is/b/2016/03/16/supreme-annotations/
+
+library(showtext)
+showtext_auto()
+font_add(family = &quot;Open Sans&quot;, 
+         regular = &quot;OpenSans-CondLight.ttf&quot;, 
+         italic = &quot;OpenSans-CondLightItalic.ttf&quot;, 
+         bold = &quot;OpenSans-CondBold.ttf&quot;)
+
+#changing facet labels as shown here 
+#https://ggplot2.tidyverse.org/reference/as_labeller.html
+facet_labels &lt;- as_labeller(c(`1930`= &quot;1930 to 1939&quot;,
+                              `1940`= &quot;1940 to 1949&quot;,
+                              `1950`= &quot;1950 to 1959&quot;,
+                              `1960`= &quot;1960 to 1969&quot;,
+                              `1970`= &quot;1970 to 1979&quot;,
+                              `1980`= &quot;1980 to 1989&quot;,
+                              `1990`= &quot;1990 to 1999&quot;,
+                              `2000`= &quot;2000 to 2009&quot;,
+                              `2010`= &quot;2010 to 2019&quot;))
+
+
+#annotations for individual facet as discussed here https://stackoverflow.com/a/11889798/7938068
+annot_x &lt;- data.frame(debut_rank = 5, 
+                      total_weeks = 111,
+                      lab = &quot;Each dot\n is a book&quot;,
+                      decade = 1940)
+
+graph1 &lt;- data %&gt;% 
+  filter(best_rank==1,year&lt;2020) %&gt;% 
+  mutate(decade = factor(10*year %/% 10)) %&gt;% 
+  ggplot(aes(x = debut_rank, y  = total_weeks))+
+  geom_point(aes(color = decade, group = debut_rank))+
+  facet_grid(~decade ,labeller = facet_labels)
+
+graph1 &lt;- graph1+
+  theme_minimal(base_family = &quot;Open Sans&quot;)+
+  scale_color_brewer(palette = &quot;Paired&quot;)+
+  labs(title = &quot;Longevity of NYT bestsellers has been decreasing&quot;, 
+       subtitle = &quot;Analysis of books that reached highest of #1 on the NYT chart tells us that starting from the 1950s, the bestsellers have reduced their longevity - or time spent on the chart.\nFor instance, the top ranked books released in the 50s spent around 52 weeks on the chart while in contrast by the 2010s, they only spent 10 weeks.&quot;,
+       caption = &quot;TidyTuesday Week 19, 2022\n Prepared by D.S.Ramakant Raju (www.ds-ramakant.com)&quot;,
+       x = &quot;Rank of title on debut week&quot;,
+       y = &quot;Number of weeks on the bestsellers list&quot;)+
+  theme(panel.border = element_rect(color = &quot;#2b2b2b&quot;, 
+                                    fill = NA), #borders for each facet panel
+        legend.position = &quot;none&quot;, #removing legend
+        strip.text = element_text(face = &quot;italic&quot;),
+        plot.title = element_text(size = 14, face = &quot;bold&quot;),
+        panel.grid.major.x = element_line(linetype = &quot;dotted&quot;, 
+                                          color = &quot;black&quot;),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        plot.caption = element_text(size = 12),
+        plot.subtitle = element_text(size = 12)) +
+  scale_y_continuous(breaks = seq(from = 25, to = 175, by = 25))+
+  #annotations by default is applied to all facets
+  #for individual facet annotations, check https://stackoverflow.com/a/11889798/7938068
+  geom_text(data = annot_x, 
+            aes(x = debut_rank, y = total_weeks, 
+                family = &quot;Open Sans&quot;, alpha = 0.8,
+                hjust = -0.2, vjust = -0.2),
+            label = annot_x$lab
+            )
+
+
+
+print(graph1)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/Longevity-1.png" width="672" /></p>
+<p>Paints the same story in a much more simpler manner, don’t it? Now lets look at seasonality - is there any trend as far as the launch month is concerned? For the sake of analysis, I’ve truncated the analysis period to 2010 onwards to keep it more relevant and exlcude irrelvant historical data.</p>
+<pre class="r"><code>graph2 &lt;- data %&gt;% 
+  filter(best_rank&lt;11, year&gt; 2010) %&gt;% 
+  mutate(month = month(first_week, label = T),
+         stage = case_when(year&lt;=2015 ~ &quot;2011-2015&quot;,
+                           year&gt; 2015 ~ &quot;2016-2020&quot;,
+                           T ~ &quot;x&quot;)) %&gt;% 
+  group_by(stage,year,month) %&gt;% 
+  summarise(n = n_distinct(title)) %&gt;% 
+  mutate(all_titles = ave(n, year, FUN = sum),
+         pct = n/all_titles) %&gt;%  
+  ggplot(aes(x = month, y = pct, group = 1))+
+  geom_point(size = 2, 
+             alpha = 0.5, position = &quot;jitter&quot;)+
+  geom_smooth(se = T) 
+
+
+graph2 &lt;- graph2+
+  theme_minimal(base_family = &quot;Open Sans&quot;)+
+  scale_color_brewer(palette = &quot;Paired&quot;)+
+  labs(title = &quot;Monthly seasonality of books that featured in the top 10 of NYT Bestsellers list (2010-2021)&quot;, 
+       subtitle = &quot;Books launched in Summer (Apr-May) or Fall (Sep-Oct) were more likely to make it feature in the top 10&quot;,
+       caption = &quot;TidyTuesday Week 19, 2022\n Prepared by D.S.Ramakant Raju, www.ds-ramakant.com&quot;,
+       x = &quot;Months (2010-2019)&quot;,
+       y = &quot;%age of books launched within that year&quot;)+
+  scale_y_continuous(labels = label_percent(accuracy = 1),
+                     breaks = seq(from = 0, to = 0.2, by= 0.05), 
+                     limits = c(0,0.15))+
+  theme(axis.line.x = element_line(color = &quot;grey&quot;),
+        panel.grid.minor.y = element_blank())
+
+graph2</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/Seasonality-1.png" width="672" /></p>
+<p>This is a fairly straightforward and replicable analysis. If you’re a #TidyTuesday fan please feel free to share your work in the comments below</p>
+</div>

@@ -300,7 +300,8 @@ graph2 <- graph2+
                      limits = c(0,0.15))+
   theme(axis.line.x = element_line(color = "grey"),
         panel.grid.minor.y = element_blank())
-  
+
+print(graph2)
   
 showtext_end()
 
