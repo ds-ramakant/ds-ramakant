@@ -196,7 +196,7 @@ data %>%
 
 
 
-# theming the final graphs ------------------------------------------------------------
+# theming for graph 1------------------------------------------------------------
 
 #changing facet labels as shown here https://ggplot2.tidyverse.org/reference/as_labeller.html
 facet_labels <- as_labeller(c(`1930`= "1930 to 1939",
@@ -227,11 +227,11 @@ showtext_begin()
 
 
 
-graph1+
+graph1 <- graph1+
   theme_minimal(base_family = "Open Sans")+
   scale_color_brewer(palette = "Paired")+
   labs(title = "Longevity of NYT bestsellers has been decreasing", 
-       subtitle = "Analysis of books that reached highest of #1 on the NYT chart tells us that starting from the 1950s, the bestsellers have reduced their longevity - or time spent on the chart.\nFor instance, the top ranked books released in the 50s spent around 52 weeks on the chart while in contrast by the 2010s, they only spend 10 weeks.",
+       subtitle = "Analysis of books that reached highest of #1 on the NYT chart tells us that starting from the 1950s, the bestsellers have reduced their longevity - or time spent on the chart.\nFor instance, the top ranked books released in the 50s spent around 52 weeks on the chart while in contrast by the 2010s, they only spent 10 weeks.",
        caption = "TidyTuesday Week 19, 2022\n Prepared by D.S.Ramakant Raju, www.ds-ramakant.com",
        x = "Rank of title on debut week",
        y = "Number of weeks on the bestsellers list")+
@@ -256,6 +256,54 @@ graph1+
             )
 
 showtext_end()  
+
+print(graph1)
+
+#DO NOT USE GGSAVE. unsatisfactory output. use the plots window instead
+ggsave(filename = "test.png",
+  path = ".\\content\\post\\2022-06-01-tidytuesday-nyt-bestsellers-list",
+  plot = graph1, 
+  bg = "white")
+
+
+
+# theming for graph 2 ------------------------------------------------------
+
+showtext_begin()
+
+graph2 <- data %>% 
+  filter(best_rank<11, year> 2010) %>% 
+  mutate(month = month(first_week, label = T),
+         stage = case_when(year<=2015 ~ "2011-2015",
+                           year> 2015 ~ "2016-2020",
+                           T ~ "x")) %>% 
+  group_by(stage,year,month) %>% 
+  summarise(n = n_distinct(title)) %>% 
+  mutate(all_titles = ave(n, year, FUN = sum),
+         pct = n/all_titles) %>%  
+  ggplot(aes(x = month, y = pct, group = 1))+
+  geom_point(size = 2, 
+             alpha = 0.5, position = "jitter")+
+  geom_smooth(se = T) 
+
+
+graph2 <- graph2+
+  theme_minimal(base_family = "Open Sans")+
+  scale_color_brewer(palette = "Paired")+
+  labs(title = "Monthly seasonality of books that featured in the top 10 of NYT Bestsellers list (2010-2019)", 
+       subtitle = "Books launched in Summer (Apr-May) or Fall (Sep-Oct) were more likely to make it feature in the top 10",
+       caption = "TidyTuesday Week 19, 2022\n Prepared by D.S.Ramakant Raju, www.ds-ramakant.com",
+       x = "Months (2010-2019)",
+       y = "%age of books launched within that year")+
+  scale_y_continuous(labels = label_percent(accuracy = 1),
+                     breaks = seq(from = 0, to = 0.2, by= 0.05), 
+                     limits = c(0,0.15))+
+  theme(axis.line.x = element_line(color = "grey"),
+        panel.grid.minor.y = element_blank())
+  
+  
+showtext_end()
+
 
 # intsalling new fonts ----------------------------------------------------
 
