@@ -1,0 +1,181 @@
+---
+title: 'Day 4 of #50daysofkaggle'
+author: ''
+date: '2022-10-10'
+slug: day-4-of-50daysofkaggle
+categories:
+  - kaggle
+tags:
+  - 50daysofkaggle
+  - kaggle
+  - machinelearning
+  - python
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-10-10T11:28:37+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="day-4-the-titanic-dataset" class="section level1">
+<h1>Day 4: The Titanic Dataset</h1>
+<p>Previously I managed to download the titanic zip file using the kaggle api and extract two datasets <code>train</code> and <code>test</code> .</p>
+<pre class="python"><code>import requests
+import numpy as np
+import pandas as pd
+import kaggle 
+import zipfile 
+
+kaggle.api.authenticate()
+
+kaggle.api.competition_download_files(&quot;titanic&quot;, path = &quot;.&quot;)
+
+zf = zipfile.ZipFile(&quot;titanic.zip&quot;)
+train = pd.read_csv(zf.open(&quot;train.csv&quot;))
+test = pd.read_csv(zf.open(&quot;test.csv&quot;))</code></pre>
+<div id="rearranging-train-dataset" class="section level2">
+<h2>Rearranging <code>train</code> dataset</h2>
+<p>Lets see what we have here</p>
+<pre class="python"><code>train.head</code></pre>
+<pre><code>## &lt;bound method NDFrame.head of      PassengerId  Survived  Pclass  ...     Fare Cabin  Embarked
+## 0              1         0       3  ...   7.2500   NaN         S
+## 1              2         1       1  ...  71.2833   C85         C
+## 2              3         1       3  ...   7.9250   NaN         S
+## 3              4         1       1  ...  53.1000  C123         S
+## 4              5         0       3  ...   8.0500   NaN         S
+## ..           ...       ...     ...  ...      ...   ...       ...
+## 886          887         0       2  ...  13.0000   NaN         S
+## 887          888         1       1  ...  30.0000   B42         S
+## 888          889         0       3  ...  23.4500   NaN         S
+## 889          890         1       1  ...  30.0000  C148         C
+## 890          891         0       3  ...   7.7500   NaN         Q
+## 
+## [891 rows x 12 columns]&gt;</code></pre>
+<pre class="python"><code>train.info()</code></pre>
+<pre><code>## &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+## RangeIndex: 891 entries, 0 to 890
+## Data columns (total 12 columns):
+##  #   Column       Non-Null Count  Dtype  
+## ---  ------       --------------  -----  
+##  0   PassengerId  891 non-null    int64  
+##  1   Survived     891 non-null    int64  
+##  2   Pclass       891 non-null    int64  
+##  3   Name         891 non-null    object 
+##  4   Sex          891 non-null    object 
+##  5   Age          714 non-null    float64
+##  6   SibSp        891 non-null    int64  
+##  7   Parch        891 non-null    int64  
+##  8   Ticket       891 non-null    object 
+##  9   Fare         891 non-null    float64
+##  10  Cabin        204 non-null    object 
+##  11  Embarked     889 non-null    object 
+## dtypes: float64(2), int64(5), object(5)
+## memory usage: 83.7+ KB</code></pre>
+<p><code>PassengerID</code> is the unique identifier for each row while <code>Survived</code> is the column to be predicted. Finding only the numeric columns and dropping the above two (ref - <a href="https://thispointer.com/python-how-to-remove-multiple-elements-from-list/#:~:text=Remove%20Multiple%20elements%20from%20list%20by%20index%20range%20using%20del,can%20use%20del%20keyword%20i.e.&amp;text=It%20will%20delete%20the%20elements,from%20index1%20to%20index2%20%E2%80%93%201.">this link</a>)</p>
+<pre class="python"><code>num_col = train.select_dtypes(include=np.number).columns.tolist()
+
+del num_col[0:2] #.remove() can remove only 1 item. so for more than 1, use for loop 
+select_col = num_col</code></pre>
+<p>Among the string columns, only <code>Sex</code> and <code>Embarked</code> are relevant for our analysis. <a href="https://stackoverflow.com/questions/40636514/selecting-columns-by-list-and-columns-are-subset-of-list">Ref - selecting columns by intersection</a></p>
+<pre class="python"><code>str_col= [&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Survived&quot;]
+str_col
+</code></pre>
+<pre><code>## [&#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
+<pre class="python"><code>select_col.extend(str_col)
+select_col</code></pre>
+<pre><code>## [&#39;Pclass&#39;, &#39;Age&#39;, &#39;SibSp&#39;, &#39;Parch&#39;, &#39;Fare&#39;, &#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
+<pre class="python"><code>train_eda= train[train.columns.intersection(select_col)]
+
+train_eda.info()</code></pre>
+<pre><code>## &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+## RangeIndex: 891 entries, 0 to 890
+## Data columns (total 8 columns):
+##  #   Column    Non-Null Count  Dtype  
+## ---  ------    --------------  -----  
+##  0   Survived  891 non-null    int64  
+##  1   Pclass    891 non-null    int64  
+##  2   Sex       891 non-null    object 
+##  3   Age       714 non-null    float64
+##  4   SibSp     891 non-null    int64  
+##  5   Parch     891 non-null    int64  
+##  6   Fare      891 non-null    float64
+##  7   Embarked  889 non-null    object 
+## dtypes: float64(2), int64(4), object(2)
+## memory usage: 55.8+ KB</code></pre>
+</div>
+<div id="eda" class="section level2">
+<h2>EDA</h2>
+<pre class="python"><code>import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.catplot(data = train_eda, x = &quot;Age&quot;, y = &quot;Fare&quot;, hue = &quot;Survived&quot;)
+            </code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="280" /></p>
+<pre class="python"><code>plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-2.png" width="549" /></p>
+<p>Clearly the older folks in</p>
+<pre class="python"><code>plt.clf()
+sns.boxplot(data = train_eda, y = &quot;Age&quot;, x = &quot;Pclass&quot;, hue = &quot;Survived&quot;)
+plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-5.png" width="672" /></p>
+<p>Below graph shows us that among the survivors, there were a lot more women than men survived the disaster.</p>
+<pre class="python"><code>plt.clf()
+plot = sns.FacetGrid(data = train_eda, col = &quot;Survived&quot;, hue = &quot;Sex&quot;, col_wrap = 2)
+plot.map(sns.scatterplot, &quot;Age&quot;, &quot;Fare&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-7.png" width="295" /></p>
+<pre class="python"><code>plot.axes[-1].legend()
+plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-8.png" width="576" /></p>
+<p>There also seems to be a clearer skew towards Class 1 (richer) compared to Class 3 (poorer)</p>
+<pre class="python"><code>plt.clf()
+plot = sns.FacetGrid(data = train_eda, col = &quot;Survived&quot;, hue = &quot;Pclass&quot;, col_wrap = 2)
+plot.map(sns.scatterplot, &quot;Age&quot;, &quot;Fare&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-11.png" width="295" /></p>
+<pre class="python"><code>plot.axes[-1].legend()
+plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-12.png" width="576" /></p>
+<pre class="python"><code>
+plt.clf()
+plot = sns.FacetGrid(data = train_eda, col = &quot;Survived&quot;, hue = &quot;SibSp&quot;, col_wrap = 2)
+plot.map(sns.scatterplot, &quot;Age&quot;, &quot;Fare&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-15.png" width="295" /></p>
+<pre class="python"><code>plot.axes[-1].legend()
+plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-16.png" width="576" /></p>
+</div>
+<div id="roughspace" class="section level2">
+<h2>roughspace</h2>
+<pre class="python"><code>
+
+train_df = pd.get_dummies(train_eda, columns = [&quot;Sex&quot;, &quot;Embarked&quot;])
+
+train_df.info()</code></pre>
+<pre><code>## &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+## RangeIndex: 891 entries, 0 to 890
+## Data columns (total 11 columns):
+##  #   Column      Non-Null Count  Dtype  
+## ---  ------      --------------  -----  
+##  0   Survived    891 non-null    int64  
+##  1   Pclass      891 non-null    int64  
+##  2   Age         714 non-null    float64
+##  3   SibSp       891 non-null    int64  
+##  4   Parch       891 non-null    int64  
+##  5   Fare        891 non-null    float64
+##  6   Sex_female  891 non-null    uint8  
+##  7   Sex_male    891 non-null    uint8  
+##  8   Embarked_C  891 non-null    uint8  
+##  9   Embarked_Q  891 non-null    uint8  
+##  10  Embarked_S  891 non-null    uint8  
+## dtypes: float64(2), int64(4), uint8(5)
+## memory usage: 46.2 KB</code></pre>
+</div>
+</div>

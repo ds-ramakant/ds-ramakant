@@ -1,0 +1,80 @@
+---
+title: 'day 1 of #50daysofkaggle'
+author: ''
+date: '2022-10-07'
+slug: day-1-of-50daysofkaggle
+categories:
+  - kaggle
+tags:
+  - kaggle
+  - 50daysofkaggle
+  - python
+  - machinelearning
+subtitle: '50 days of Kaggle'
+summary: 'The Titanic Dataset'
+authors: []
+lastmod: '2022-10-07T15:32:49+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>Introducing my own personal sprint training <a href="https://www.kaggle.com/dsramakant"><span class="smallcaps"><u><strong>“50 Days of Kaggle”</strong></u></span></a></p>
+<p>The task is simple:</p>
+<ol style="list-style-type: decimal">
+<li>Improve Kaggle score by the end of 50 days</li>
+<li>Work on ML models daily. Try interacting on the portal as much as possible.</li>
+<li>Keep ISLR notes handy. Blog over here for revision</li>
+<li>Use Python. Or else use R Tidymodels. (neither of which I am currently proficient in)</li>
+</ol>
+<p>I’d want to use this blog to journal my progress. Hopefully by 26th Nov’22, I’d have improved from where I’m starting out.</p>
+<p>So what do we have for Day 1?</p>
+<div id="the-titanic-dataset" class="section level1">
+<h1><a href="https://www.kaggle.com/competitions/titanic/overview" title="Baby Step #1">The Titanic Dataset</a></h1>
+<p>Everyone’s first starting point. And I’m slowly starting to appreciate why. Lets see if we can read the data directly into this notebook</p>
+<div id="reading-the-data" class="section level2">
+<h2>Reading the data</h2>
+<pre class="python"><code>import requests
+import numpy as np
+import pandas as pd
+import kaggle
+
+kaggle.api.authenticate()</code></pre>
+<p>below command did not work</p>
+<pre class="python"><code>#kaggle.api.dataset_download_files(&quot;titanic&quot;, path = &quot;.&quot;, unzip = True)</code></pre>
+<p>However, this one does as per this link <a href="https://www.kaggle.com/general/138914" class="uri">https://www.kaggle.com/general/138914</a></p>
+<pre class="python"><code>kaggle.api.competition_download_files(&quot;titanic&quot;, path = &quot;.&quot;)</code></pre>
+<p>This pulls the .zip file in the local folder. because this is a zip file, we need package called <code>zipfile</code>(note to self: don’t forget the console command <code>reticulate::py_install("zipfile")</code>)</p>
+<p><a href="https://stackoverflow.com/a/56786517/7938068" class="uri">https://stackoverflow.com/a/56786517/7938068</a></p>
+<pre class="python"><code>import zipfile
+
+zf = zipfile.ZipFile(&quot;titanic.zip&quot;)
+train = pd.read_csv(zf.open(&quot;train.csv&quot;))
+test = pd.read_csv(zf.open(&quot;test.csv&quot;))
+train.head()</code></pre>
+<pre><code>##    PassengerId  Survived  Pclass  ...     Fare Cabin  Embarked
+## 0            1         0       3  ...   7.2500   NaN         S
+## 1            2         1       1  ...  71.2833   C85         C
+## 2            3         1       3  ...   7.9250   NaN         S
+## 3            4         1       1  ...  53.1000  C123         S
+## 4            5         0       3  ...   8.0500   NaN         S
+## 
+## [5 rows x 12 columns]</code></pre>
+<pre class="python"><code>test.head()</code></pre>
+<pre><code>##    PassengerId  Pclass  ... Cabin Embarked
+## 0          892       3  ...   NaN        Q
+## 1          893       3  ...   NaN        S
+## 2          894       2  ...   NaN        Q
+## 3          895       3  ...   NaN        S
+## 4          896       3  ...   NaN        S
+## 
+## [5 rows x 11 columns]</code></pre>
+<p>This took me a whole day to figure out. End of Day1.</p>
+</div>
+</div>
