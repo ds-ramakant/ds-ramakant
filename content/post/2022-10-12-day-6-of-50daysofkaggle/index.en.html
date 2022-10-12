@@ -1,0 +1,125 @@
+---
+title: Day 6 of 50daysofkaggle
+author: ''
+date: '2022-10-12'
+slug: day-6-of-50daysofkaggle
+categories:
+  - kaggle
+tags:
+  - 50daysofkaggle
+  - kaggle
+  - machinelearning
+  - python
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-10-12T15:38:17+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="day-6-the-titanic-dataset" class="section level1">
+<h1>Day 6: The Titanic Dataset</h1>
+<p>Progress till date:</p>
+<ul>
+<li>Download titanic dataset and assign to <code>train</code> &amp; <code>test</code></li>
+<li>Rearranging the data</li>
+<li>EDA</li>
+</ul>
+<p>To do today:</p>
+<ul>
+<li>write function to find share of survivors by each variable</li>
+<li>attempt to create model</li>
+</ul>
+<pre class="python"><code>import requests
+import numpy as np
+import pandas as pd
+import kaggle 
+import zipfile 
+
+kaggle.api.authenticate()
+
+kaggle.api.competition_download_files(&quot;titanic&quot;, path = &quot;.&quot;)
+
+zf = zipfile.ZipFile(&quot;titanic.zip&quot;)
+train = pd.read_csv(zf.open(&quot;train.csv&quot;))
+test = pd.read_csv(zf.open(&quot;test.csv&quot;))
+
+num_col = train.select_dtypes(include=np.number).columns.tolist()
+
+del num_col[0:2] #.remove() can remove only 1 item. so for more than 1, use for loop 
+select_col = num_col
+
+str_col= [&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Survived&quot;]
+str_col
+</code></pre>
+<pre><code>## [&#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
+<pre class="python"><code>select_col.extend(str_col)
+select_col</code></pre>
+<pre><code>## [&#39;Pclass&#39;, &#39;Age&#39;, &#39;SibSp&#39;, &#39;Parch&#39;, &#39;Fare&#39;, &#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
+<pre class="python"><code>train_eda= train[train.columns.intersection(select_col)]
+
+train_eda.info()</code></pre>
+<pre><code>## &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+## RangeIndex: 891 entries, 0 to 890
+## Data columns (total 8 columns):
+##  #   Column    Non-Null Count  Dtype  
+## ---  ------    --------------  -----  
+##  0   Survived  891 non-null    int64  
+##  1   Pclass    891 non-null    int64  
+##  2   Sex       891 non-null    object 
+##  3   Age       714 non-null    float64
+##  4   SibSp     891 non-null    int64  
+##  5   Parch     891 non-null    int64  
+##  6   Fare      891 non-null    float64
+##  7   Embarked  889 non-null    object 
+## dtypes: float64(2), int64(4), object(2)
+## memory usage: 55.8+ KB</code></pre>
+<p>Today I want to calculate the survival rate of each of these attributes (<code>Pclass, Sex, Embarked</code>).</p>
+<pre class="python"><code>
+df_copy2 = pd.DataFrame(columns = {&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;})
+
+for t in [&quot;Pclass&quot;, &quot;Sex&quot;, &quot;Embarked&quot;]:
+  df_copy = train_eda.groupby([t])[&quot;Survived&quot;].mean().reset_index()
+  df_copy[&quot;category&quot;] = t
+  #trying to create a `tidy` version of the data 
+  df_copy.rename(columns = {t: &quot;col&quot;, &quot;Survived&quot;: &quot;survive_rate&quot;}, errors = &quot;raise&quot;, inplace = True)
+  df_copy = df_copy[[&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;]]
+  df_copy2= pd.concat([df_copy2, df_copy], ignore_index = True)
+
+
+#final table in a tidy format that can be used to create graphs. but that i&#39;m keeping for later
+df_copy2[[&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;]] </code></pre>
+<pre><code>##    category     col  survive_rate
+## 0    Pclass       1      0.629630
+## 1    Pclass       2      0.472826
+## 2    Pclass       3      0.242363
+## 3       Sex  female      0.742038
+## 4       Sex    male      0.188908
+## 5  Embarked       C      0.553571
+## 6  Embarked       Q      0.389610
+## 7  Embarked       S      0.336957</code></pre>
+<p>With this, its pretty clear that among the <code>sex</code> category, males had the least likelihood of surviving with 19%. The richer <code>class 1</code> managed a 63% chance of survival while only 24% of the lower <code>class 3</code> survived. Finally those that <code>embarked</code> from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.</p>
+<p><em>ignore below</em></p>
+<pre class="python"><code># train_eda.isnull().groupby([t])[&quot;Survived&quot;].sum()
+# 
+# t_col = [&quot;Pclass&quot;, &quot;Sex&quot;, &quot;Embarked&quot;]
+# 
+# for i in t_col:
+#   print(&quot;Null values in &quot;,i, &quot;\n&quot;)
+#   xxx = train_eda[i, &quot;Survived&quot;]
+#   xxx.dropna(inplace = True)
+#   xxx.isnull().value_counts()
+#   print(&quot;---o---\n&quot;)
+#   
+# 
+# xxx = train_eda[[&quot;Sex&quot;, &quot;Survived&quot;]]
+# xxx.value_counts()</code></pre>
+</div>

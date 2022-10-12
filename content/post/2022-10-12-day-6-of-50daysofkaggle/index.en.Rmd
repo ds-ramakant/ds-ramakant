@@ -91,18 +91,18 @@ With this, its pretty clear that among the `sex` category, males had the least l
 *ignore below*
 
 ```{python}
-train_eda.isnull().groupby([t])["Survived"].sum()
-
-t_col = ["Pclass", "Sex", "Embarked"]
-
-for i in t_col:
-  print("Null values in ",i, "\n")
-  xxx = train_eda[i, "Survived"]
-  xxx.dropna(inplace = True)
-  xxx.isnull().value_counts()
-  print("---o---\n")
-  
-
-xxx = train_eda[["Sex", "Survived"]]
-xxx.value_counts()
+# train_eda.isnull().groupby([t])["Survived"].sum()
+# 
+# t_col = ["Pclass", "Sex", "Embarked"]
+# 
+# for i in t_col:
+#   print("Null values in ",i, "\n")
+#   xxx = train_eda[i, "Survived"]
+#   xxx.dropna(inplace = True)
+#   xxx.isnull().value_counts()
+#   print("---o---\n")
+#   
+# 
+# xxx = train_eda[["Sex", "Survived"]]
+# xxx.value_counts()
 ```
