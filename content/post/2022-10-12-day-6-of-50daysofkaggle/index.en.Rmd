@@ -1,0 +1,108 @@
+---
+title: Day 6 of 50daysofkaggle
+author: ''
+date: '2022-10-12'
+slug: day-6-of-50daysofkaggle
+categories:
+  - kaggle
+tags:
+  - 50daysofkaggle
+  - kaggle
+  - machinelearning
+  - python
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-10-12T15:38:17+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+# Day 6: The Titanic Dataset
+
+Progress till date:
+
+-   Download titanic dataset and assign to `train` & `test`
+-   Rearranging the data
+-   EDA
+
+To do today:
+
+-   write function to find share of survivors by each variable
+-   attempt to create model
+
+```{python}
+import requests
+import numpy as np
+import pandas as pd
+import kaggle 
+import zipfile 
+
+kaggle.api.authenticate()
+
+kaggle.api.competition_download_files("titanic", path = ".")
+
+zf = zipfile.ZipFile("titanic.zip")
+train = pd.read_csv(zf.open("train.csv"))
+test = pd.read_csv(zf.open("test.csv"))
+
+num_col = train.select_dtypes(include=np.number).columns.tolist()
+
+del num_col[0:2] #.remove() can remove only 1 item. so for more than 1, use for loop 
+select_col = num_col
+
+str_col= ["Sex", "Embarked", "Survived"]
+str_col
+
+
+select_col.extend(str_col)
+select_col
+
+train_eda= train[train.columns.intersection(select_col)]
+
+train_eda.info()
+```
+
+Today I want to calculate the survival rate of each of these attributes (`Pclass, Sex, Embarked`).
+
+```{python}
+
+df_copy2 = pd.DataFrame(columns = {"category", "col", "survive_rate"})
+
+for t in ["Pclass", "Sex", "Embarked"]:
+  df_copy = train_eda.groupby([t])["Survived"].mean().reset_index()
+  df_copy["category"] = t
+  #trying to create a `tidy` version of the data 
+  df_copy.rename(columns = {t: "col", "Survived": "survive_rate"}, errors = "raise", inplace = True)
+  df_copy = df_copy[["category", "col", "survive_rate"]]
+  df_copy2= pd.concat([df_copy2, df_copy], ignore_index = True)
+
+
+#final table in a tidy format that can be used to create graphs. but that i'm keeping for later
+df_copy2[["category", "col", "survive_rate"]] 
+```
+
+With this, its pretty clear that among the `sex` category, males had the least likelihood of surviving with 19%. The richer `class 1` managed a 63% chance of survival while only 24% of the lower `class 3` survived. Finally those that `embarked` from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.
+
+*ignore below*
+
+```{python}
+train_eda.isnull().groupby([t])["Survived"].sum()
+
+t_col = ["Pclass", "Sex", "Embarked"]
+
+for i in t_col:
+  print("Null values in ",i, "\n")
+  xxx = train_eda[i, "Survived"]
+  xxx.dropna(inplace = True)
+  xxx.isnull().value_counts()
+  print("---o---\n")
+  
+
+xxx = train_eda[["Sex", "Survived"]]
+xxx.value_counts()
+```
