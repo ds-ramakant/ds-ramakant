@@ -1,0 +1,5 @@
+creating text file via windows terminal. ref to wikihow.com
+end of message
+
+
+https://www.wikihow.com/Create-and-Delete-Files-and-Directories-from-Windows-Command-Prompt
