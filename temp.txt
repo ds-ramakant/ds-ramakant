@@ -3,3 +3,7 @@ end of message
 
 
 https://www.wikihow.com/Create-and-Delete-Files-and-Directories-from-Windows-Command-Prompt
+
+attempt #2. trying to follow this advice
+
+https://stackoverflow.com/questions/39976526/rstudio-greyed-out-git-commands-and-no-branch
