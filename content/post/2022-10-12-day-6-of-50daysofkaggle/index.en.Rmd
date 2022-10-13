@@ -64,7 +64,7 @@ select_col
 
 train_eda= train[train.columns.intersection(select_col)]
 
-train_eda.info()
+train_eda
 ```
 
 Today I want to calculate the survival rate of each of these attributes (`Pclass, Sex, Embarked`).
@@ -91,6 +91,47 @@ With this, its pretty clear that among the `sex` category, males had the least l
 *ignore below. the following code should NOT be seen*
 
 ```{python ignore, eval=FALSE, include=FALSE}
+
+
+```
+
+## Model building
+
+Seperating the X & y
+
+```{python}
+
+
+train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
+
+X_train = train_eda[["Age", "SibSp", "Parch", "Fare"]]
+X_train
+
+
+X_train = pd.concat([X_train,pd.get_dummies(data = train_eda[["Sex", "Embarked", "Pclass"]], columns = ["Sex", "Embarked", "Pclass"])], axis = 1)
+
+X_train.head()
+
+y_train = train_eda["Survived"].values
+y_train[0:5]
+
+test_eda= 
+```
+
+### Standardising the values
+
+```{python}
+from sklearn import preprocessing
+
+X= preprocessing.StandardScaler().fit(X).transform(X)
+
+X[0:5]
+```
+
+Ignore everything below this
+
+```{python}
+X.info()
 
 
 ```
