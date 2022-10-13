@@ -50,21 +50,24 @@ zf = zipfile.ZipFile("titanic.zip")
 train = pd.read_csv(zf.open("train.csv"))
 test = pd.read_csv(zf.open("test.csv"))
 
+#Selecting only the numerical columns
 num_col = train.select_dtypes(include=np.number).columns.tolist()
 
+#deslecting passenger ID and 'Survived' 
 del num_col[0:2] #.remove() can remove only 1 item. so for more than 1, use for loop 
 select_col = num_col
 
+#remaining columns
 str_col= ["Sex", "Embarked", "Survived"]
 str_col
 
-
+#Adding more elements into a list using `extend` and not `append`
 select_col.extend(str_col)
 select_col
 
 train_eda= train[train.columns.intersection(select_col)]
-
 train_eda
+
 ```
 
 Today I want to calculate the survival rate of each of these attributes (`Pclass, Sex, Embarked`).
@@ -104,18 +107,37 @@ Seperating the X & y
 
 train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
 
-X_train = train_eda[["Age", "SibSp", "Parch", "Fare"]]
-X_train
+X = train_eda[["Age", "SibSp", "Parch", "Fare"]]
+X
 
 
-X_train = pd.concat([X_train,pd.get_dummies(data = train_eda[["Sex", "Embarked", "Pclass"]], columns = ["Sex", "Embarked", "Pclass"])], axis = 1)
+X = pd.concat([X,pd.get_dummies(data = train_eda[["Sex", "Embarked", "Pclass"]], columns = ["Sex", "Embarked", "Pclass"])], axis = 1)
 
-X_train.head()
+X.head()
 
-y_train = train_eda["Survived"].values
-y_train[0:5]
+y = train_eda["Survived"].values
+y[0:5]
 
-test_eda= 
+len(y) #712
+X.shape #(712, 12)
+```
+
+### Normalising the data
+
+```{python}
+X= preprocessing.StandardScaler().fit(X).transform(X)
+X[0:5]
+```
+
+### Splitting into Test & Train data
+
+```{python}
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print ('Train set\t :', X_train.shape,  y_train.shape,
+'\nTest set\t :', X_test.shape,  y_test.shape)
+
+
 ```
 
 ### Standardising the values
@@ -131,7 +153,7 @@ X[0:5]
 Ignore everything below this
 
 ```{python}
-X.info()
+test.info()
 
 
 ```
