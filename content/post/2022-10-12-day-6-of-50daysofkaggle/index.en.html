@@ -1,19 +1,18 @@
 ---
-title: Day 6 of 50daysofkaggle
+title: "Day 6 of 50daysofkaggle"
 author: ''
-date: '2022-10-12'
-slug: day-6-of-50daysofkaggle
-categories:
-  - kaggle
+date: "2022-10-12"
+slug: "day-6-of-50daysofkaggle"
+categories: kaggle
 tags:
-  - 50daysofkaggle
-  - kaggle
-  - machinelearning
-  - python
+- 50daysofkaggle
+- kaggle
+- machinelearning
+- python
 subtitle: ''
 summary: ''
 authors: []
-lastmod: '2022-10-12T15:38:17+05:30'
+lastmod: "2022-10-12T15:38:17+05:30"
 featured: no
 image:
   caption: ''
@@ -51,36 +50,38 @@ zf = zipfile.ZipFile(&quot;titanic.zip&quot;)
 train = pd.read_csv(zf.open(&quot;train.csv&quot;))
 test = pd.read_csv(zf.open(&quot;test.csv&quot;))
 
+#Selecting only the numerical columns
 num_col = train.select_dtypes(include=np.number).columns.tolist()
 
+#deslecting passenger ID and &#39;Survived&#39; 
 del num_col[0:2] #.remove() can remove only 1 item. so for more than 1, use for loop 
 select_col = num_col
 
+#remaining columns
 str_col= [&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Survived&quot;]
 str_col
-</code></pre>
+
+#Adding more elements into a list using `extend` and not `append`</code></pre>
 <pre><code>## [&#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
 <pre class="python"><code>select_col.extend(str_col)
 select_col</code></pre>
 <pre><code>## [&#39;Pclass&#39;, &#39;Age&#39;, &#39;SibSp&#39;, &#39;Parch&#39;, &#39;Fare&#39;, &#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
 <pre class="python"><code>train_eda= train[train.columns.intersection(select_col)]
-
-train_eda.info()</code></pre>
-<pre><code>## &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
-## RangeIndex: 891 entries, 0 to 890
-## Data columns (total 8 columns):
-##  #   Column    Non-Null Count  Dtype  
-## ---  ------    --------------  -----  
-##  0   Survived  891 non-null    int64  
-##  1   Pclass    891 non-null    int64  
-##  2   Sex       891 non-null    object 
-##  3   Age       714 non-null    float64
-##  4   SibSp     891 non-null    int64  
-##  5   Parch     891 non-null    int64  
-##  6   Fare      891 non-null    float64
-##  7   Embarked  889 non-null    object 
-## dtypes: float64(2), int64(4), object(2)
-## memory usage: 55.8+ KB</code></pre>
+train_eda</code></pre>
+<pre><code>##      Survived  Pclass     Sex   Age  SibSp  Parch     Fare Embarked
+## 0           0       3    male  22.0      1      0   7.2500        S
+## 1           1       1  female  38.0      1      0  71.2833        C
+## 2           1       3  female  26.0      0      0   7.9250        S
+## 3           1       1  female  35.0      1      0  53.1000        S
+## 4           0       3    male  35.0      0      0   8.0500        S
+## ..        ...     ...     ...   ...    ...    ...      ...      ...
+## 886         0       2    male  27.0      0      0  13.0000        S
+## 887         1       1  female  19.0      0      0  30.0000        S
+## 888         0       3  female   NaN      1      2  23.4500        S
+## 889         1       1    male  26.0      0      0  30.0000        C
+## 890         0       3    male  32.0      0      0   7.7500        Q
+## 
+## [891 rows x 8 columns]</code></pre>
 <p>Today I want to calculate the survival rate of each of these attributes (<code>Pclass, Sex, Embarked</code>).</p>
 <pre class="python"><code>
 df_copy2 = pd.DataFrame(columns = {&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;})
@@ -107,4 +108,170 @@ df_copy2[[&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;]]</cod
 ## 7  Embarked       S     0.336957</code></pre>
 <p>With this, its pretty clear that among the <code>sex</code> category, males had the least likelihood of surviving with 19%. The richer <code>class 1</code> managed a 63% chance of survival while only 24% of the lower <code>class 3</code> survived. Finally those that <code>embarked</code> from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.</p>
 <p><em>ignore below. the following code should NOT be seen</em></p>
+<div id="model-building" class="section level2">
+<h2>Model building</h2>
+<p>Seperating the X &amp; y</p>
+<pre class="python"><code>
+
+train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
+
+X = train_eda[[&quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;]]
+X
+</code></pre>
+<pre><code>##       Age  SibSp  Parch     Fare
+## 0    22.0      1      0   7.2500
+## 1    38.0      1      0  71.2833
+## 2    26.0      0      0   7.9250
+## 3    35.0      1      0  53.1000
+## 4    35.0      0      0   8.0500
+## ..    ...    ...    ...      ...
+## 885  39.0      0      5  29.1250
+## 886  27.0      0      0  13.0000
+## 887  19.0      0      0  30.0000
+## 889  26.0      0      0  30.0000
+## 890  32.0      0      0   7.7500
+## 
+## [712 rows x 4 columns]</code></pre>
+<pre class="python"><code>X = pd.concat([X,pd.get_dummies(data = train_eda[[&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Pclass&quot;]], columns = [&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Pclass&quot;])], axis = 1)
+
+X.head()</code></pre>
+<pre><code>##     Age  SibSp  Parch     Fare  ...  Embarked_S  Pclass_1  Pclass_2  Pclass_3
+## 0  22.0      1      0   7.2500  ...           1         0         0         1
+## 1  38.0      1      0  71.2833  ...           0         1         0         0
+## 2  26.0      0      0   7.9250  ...           1         0         0         1
+## 3  35.0      1      0  53.1000  ...           1         1         0         0
+## 4  35.0      0      0   8.0500  ...           1         0         0         1
+## 
+## [5 rows x 12 columns]</code></pre>
+<pre class="python"><code>y = train_eda[&quot;Survived&quot;].values
+y[0:5]</code></pre>
+<pre><code>## array([0, 1, 1, 1, 0], dtype=int64)</code></pre>
+<pre class="python"><code>len(y) #712</code></pre>
+<pre><code>## 712</code></pre>
+<pre class="python"><code>X.shape #(712, 12)</code></pre>
+<pre><code>## (712, 12)</code></pre>
+<div id="normalising-the-data" class="section level3">
+<h3>Normalising the data</h3>
+<pre class="python"><code>from sklearn import preprocessing
+
+X= preprocessing.StandardScaler().fit(X).transform(X)
+X[0:5]</code></pre>
+<pre><code>## array([[-0.52766856,  0.52251079, -0.50678737, -0.51637992, -0.75613751,
+##          0.75613751, -0.47261792, -0.20232566,  0.53403984, -0.59032605,
+##         -0.56653751,  1.00281295],
+##        [ 0.57709388,  0.52251079, -0.50678737,  0.69404605,  1.32251077,
+##         -1.32251077,  2.11587407, -0.20232566, -1.87251946,  1.69397911,
+##         -0.56653751, -0.99719495],
+##        [-0.25147795, -0.55271372, -0.50678737, -0.50362035,  1.32251077,
+##         -1.32251077, -0.47261792, -0.20232566,  0.53403984, -0.59032605,
+##         -0.56653751,  1.00281295],
+##        [ 0.36995092,  0.52251079, -0.50678737,  0.35032585,  1.32251077,
+##         -1.32251077, -0.47261792, -0.20232566,  0.53403984,  1.69397911,
+##         -0.56653751, -0.99719495],
+##        [ 0.36995092, -0.55271372, -0.50678737, -0.50125747, -0.75613751,
+##          0.75613751, -0.47261792, -0.20232566,  0.53403984, -0.59032605,
+##         -0.56653751,  1.00281295]])</code></pre>
+</div>
+<div id="splitting-into-test-train-data" class="section level3">
+<h3>Splitting into Test &amp; Train data</h3>
+<pre class="python"><code>
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print (&#39;Train set\t :&#39;, X_train.shape,  y_train.shape,
+&#39;\nTest set\t :&#39;, X_test.shape,  y_test.shape)
+</code></pre>
+<pre><code>## Train set     : (569, 12) (569,) 
+## Test set  : (143, 12) (143,)</code></pre>
+</div>
+<div id="k-nearest-neighbours" class="section level3">
+<h3>K Nearest Neighbours</h3>
+<pre class="python"><code>
+from sklearn.neighbors import KNeighborsClassifier
+
+k = 4
+
+neighbours = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+neighbours</code></pre>
+<pre><code>## KNeighborsClassifier(n_neighbors=4)</code></pre>
+<div id="predicting-the-output-yhat-and-checking-accuracy" class="section level4">
+<h4>Predicting the output <code>yhat</code> and checking accuracy</h4>
+<pre class="python"><code>
+yhat1 = neighbours.predict(X_test)
+yhat1[0:5]</code></pre>
+<pre><code>## array([0, 0, 0, 0, 0], dtype=int64)</code></pre>
+<pre class="python"><code>from sklearn import metrics
+
+print(&quot;Train set Accuracy \t:&quot;, metrics.accuracy_score(y_train, neighbours.predict(X_train)), &quot;\nTest set Accuracy \t:&quot;, metrics.accuracy_score(y_test, yhat1))</code></pre>
+<pre><code>## Train set Accuracy   : 0.8488576449912126 
+## Test set Accuracy    : 0.7832167832167832</code></pre>
+</div>
+<div id="checking-for-other-k" class="section level4">
+<h4>Checking for other K</h4>
+<pre class="python"><code>from sklearn import metrics
+
+Ks = 10
+mean_acc = np.zeros((Ks-1))
+std_acc = np.zeros((Ks-1))
+
+for n in range(1,Ks):
+    #Train Model and Predict  
+    neigh = KNeighborsClassifier(n_neighbors = n).fit(X_train,y_train)
+    yhat=neigh.predict(X_test)
+    mean_acc[n-1] = metrics.accuracy_score(y_test, yhat)
+    std_acc[n-1]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
+
+mean_acc</code></pre>
+<pre><code>## array([0.71328671, 0.74125874, 0.78321678, 0.78321678, 0.79020979,
+##        0.76923077, 0.78321678, 0.79020979, 0.79020979])</code></pre>
+<p>By now you’d have figured that all this is pretty much copy-pasta from someplace else. Glad that IBM coursera assignments came in handy!</p>
+<pre class="python"><code>import matplotlib.pyplot as plt
+
+plt.plot(range(1,Ks),mean_acc,&#39;g&#39;)
+plt.fill_between(range(1,Ks),mean_acc - 1 * std_acc,mean_acc + 1 * std_acc, alpha=0.10)
+plt.fill_between(range(1,Ks),mean_acc - 3 * std_acc,mean_acc + 3 * std_acc, alpha=0.10,color=&quot;green&quot;)
+plt.legend((&#39;Accuracy &#39;, &#39;+/- 1xstd&#39;,&#39;+/- 3xstd&#39;))
+plt.ylabel(&#39;Accuracy &#39;)
+plt.xlabel(&#39;Number of Neighbors (K)&#39;)
+plt.tight_layout()
+plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Looks like accuracy of KNN is best at 5 neighbours.</p>
+</div>
+<div id="redo-with-k-5" class="section level4">
+<h4>Redo with <code>K = 5</code></h4>
+<pre class="python"><code>k = 5
+
+neighbours_5 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+yhat = neighbours_5.predict(X_test)
+
+print(&quot;Train set Accuracy \t:&quot;, 
+      metrics.accuracy_score(y_train, neighbours_5.predict(X_train)),
+      &quot;\nTest set Accuracy \t:&quot;, 
+      metrics.accuracy_score(y_test, yhat))</code></pre>
+<pre><code>## Train set Accuracy   : 0.8506151142355008 
+## Test set Accuracy    : 0.7902097902097902</code></pre>
+<p>Ignore everything below this</p>
+<pre class="python"><code>test.info()
+</code></pre>
+<pre><code>## &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+## RangeIndex: 418 entries, 0 to 417
+## Data columns (total 11 columns):
+##  #   Column       Non-Null Count  Dtype  
+## ---  ------       --------------  -----  
+##  0   PassengerId  418 non-null    int64  
+##  1   Pclass       418 non-null    int64  
+##  2   Name         418 non-null    object 
+##  3   Sex          418 non-null    object 
+##  4   Age          332 non-null    float64
+##  5   SibSp        418 non-null    int64  
+##  6   Parch        418 non-null    int64  
+##  7   Ticket       418 non-null    object 
+##  8   Fare         417 non-null    float64
+##  9   Cabin        91 non-null     object 
+##  10  Embarked     418 non-null    object 
+## dtypes: float64(2), int64(4), object(5)
+## memory usage: 36.0+ KB</code></pre>
+</div>
+</div>
+</div>
 </div>

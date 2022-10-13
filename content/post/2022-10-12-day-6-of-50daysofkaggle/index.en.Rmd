@@ -1,19 +1,18 @@
 ---
-title: Day 6 of 50daysofkaggle
+title: "Day 6 of 50daysofkaggle"
 author: ''
-date: '2022-10-12'
-slug: day-6-of-50daysofkaggle
-categories:
-  - kaggle
+date: "2022-10-12"
+slug: "day-6-of-50daysofkaggle"
+categories: kaggle
 tags:
-  - 50daysofkaggle
-  - kaggle
-  - machinelearning
-  - python
+- 50daysofkaggle
+- kaggle
+- machinelearning
+- python
 subtitle: ''
 summary: ''
 authors: []
-lastmod: '2022-10-12T15:38:17+05:30'
+lastmod: "2022-10-12T15:38:17+05:30"
 featured: no
 image:
   caption: ''
@@ -125,6 +124,8 @@ X.shape #(712, 12)
 ### Normalising the data
 
 ```{python}
+from sklearn import preprocessing
+
 X= preprocessing.StandardScaler().fit(X).transform(X)
 X[0:5]
 ```
@@ -132,6 +133,7 @@ X[0:5]
 ### Splitting into Test & Train data
 
 ```{python}
+
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
 print ('Train set\t :', X_train.shape,  y_train.shape,
@@ -140,14 +142,80 @@ print ('Train set\t :', X_train.shape,  y_train.shape,
 
 ```
 
-### Standardising the values
+### K Nearest Neighbours
 
 ```{python}
-from sklearn import preprocessing
 
-X= preprocessing.StandardScaler().fit(X).transform(X)
+from sklearn.neighbors import KNeighborsClassifier
 
-X[0:5]
+k = 4
+
+neighbours = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+neighbours
+```
+
+#### Predicting the output `yhat` and checking accuracy
+
+```{python}
+
+yhat1 = neighbours.predict(X_test)
+yhat1[0:5]
+```
+
+```{python}
+from sklearn import metrics
+
+print("Train set Accuracy \t:", metrics.accuracy_score(y_train, neighbours.predict(X_train)), "\nTest set Accuracy \t:", metrics.accuracy_score(y_test, yhat1))
+```
+
+#### Checking for other K
+
+```{python}
+from sklearn import metrics
+
+Ks = 10
+mean_acc = np.zeros((Ks-1))
+std_acc = np.zeros((Ks-1))
+
+for n in range(1,Ks):
+    #Train Model and Predict  
+    neigh = KNeighborsClassifier(n_neighbors = n).fit(X_train,y_train)
+    yhat=neigh.predict(X_test)
+    mean_acc[n-1] = metrics.accuracy_score(y_test, yhat)
+    std_acc[n-1]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
+
+mean_acc
+```
+
+By now you'd have figured that all this is pretty much copy-pasta from someplace else. Glad that IBM coursera assignments came in handy!
+
+```{python}
+import matplotlib.pyplot as plt
+
+plt.plot(range(1,Ks),mean_acc,'g')
+plt.fill_between(range(1,Ks),mean_acc - 1 * std_acc,mean_acc + 1 * std_acc, alpha=0.10)
+plt.fill_between(range(1,Ks),mean_acc - 3 * std_acc,mean_acc + 3 * std_acc, alpha=0.10,color="green")
+plt.legend(('Accuracy ', '+/- 1xstd','+/- 3xstd'))
+plt.ylabel('Accuracy ')
+plt.xlabel('Number of Neighbors (K)')
+plt.tight_layout()
+plt.show()
+```
+
+Looks like accuracy of KNN is best at 5 neighbours.
+
+#### Redo with `K = 5`
+
+```{python}
+k = 5
+
+neighbours_5 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+yhat = neighbours_5.predict(X_test)
+
+print("Train set Accuracy \t:", 
+      metrics.accuracy_score(y_train, neighbours_5.predict(X_train)),
+      "\nTest set Accuracy \t:", 
+      metrics.accuracy_score(y_test, yhat))
 ```
 
 Ignore everything below this
