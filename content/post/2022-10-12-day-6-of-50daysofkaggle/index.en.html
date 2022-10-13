@@ -22,7 +22,6 @@ image:
 projects: []
 ---
 
-<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
 
 
 <div id="day-6-the-titanic-dataset" class="section level1">
@@ -96,30 +95,16 @@ for t in [&quot;Pclass&quot;, &quot;Sex&quot;, &quot;Embarked&quot;]:
 
 
 #final table in a tidy format that can be used to create graphs. but that i&#39;m keeping for later
-df_copy2[[&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;]] </code></pre>
-<pre><code>##    category     col  survive_rate
-## 0    Pclass       1      0.629630
-## 1    Pclass       2      0.472826
-## 2    Pclass       3      0.242363
-## 3       Sex  female      0.742038
-## 4       Sex    male      0.188908
-## 5  Embarked       C      0.553571
-## 6  Embarked       Q      0.389610
-## 7  Embarked       S      0.336957</code></pre>
+df_copy2[[&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;]]</code></pre>
+<pre><code>##    category     col survive_rate
+## 0    Pclass       1      0.62963
+## 1    Pclass       2     0.472826
+## 2    Pclass       3     0.242363
+## 3       Sex  female     0.742038
+## 4       Sex    male     0.188908
+## 5  Embarked       C     0.553571
+## 6  Embarked       Q      0.38961
+## 7  Embarked       S     0.336957</code></pre>
 <p>With this, its pretty clear that among the <code>sex</code> category, males had the least likelihood of surviving with 19%. The richer <code>class 1</code> managed a 63% chance of survival while only 24% of the lower <code>class 3</code> survived. Finally those that <code>embarked</code> from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.</p>
-<p><em>ignore below</em></p>
-<pre class="python"><code># train_eda.isnull().groupby([t])[&quot;Survived&quot;].sum()
-# 
-# t_col = [&quot;Pclass&quot;, &quot;Sex&quot;, &quot;Embarked&quot;]
-# 
-# for i in t_col:
-#   print(&quot;Null values in &quot;,i, &quot;\n&quot;)
-#   xxx = train_eda[i, &quot;Survived&quot;]
-#   xxx.dropna(inplace = True)
-#   xxx.isnull().value_counts()
-#   print(&quot;---o---\n&quot;)
-#   
-# 
-# xxx = train_eda[[&quot;Sex&quot;, &quot;Survived&quot;]]
-# xxx.value_counts()</code></pre>
+<p><em>ignore below. the following code should NOT be seen</em></p>
 </div>

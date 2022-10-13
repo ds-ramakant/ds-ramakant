@@ -83,26 +83,14 @@ for t in ["Pclass", "Sex", "Embarked"]:
 
 
 #final table in a tidy format that can be used to create graphs. but that i'm keeping for later
-df_copy2[["category", "col", "survive_rate"]] 
+df_copy2[["category", "col", "survive_rate"]]
 ```
 
 With this, its pretty clear that among the `sex` category, males had the least likelihood of surviving with 19%. The richer `class 1` managed a 63% chance of survival while only 24% of the lower `class 3` survived. Finally those that `embarked` from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.
 
-*ignore below*
+*ignore below. the following code should NOT be seen*
 
-```{python}
-# train_eda.isnull().groupby([t])["Survived"].sum()
-# 
-# t_col = ["Pclass", "Sex", "Embarked"]
-# 
-# for i in t_col:
-#   print("Null values in ",i, "\n")
-#   xxx = train_eda[i, "Survived"]
-#   xxx.dropna(inplace = True)
-#   xxx.isnull().value_counts()
-#   print("---o---\n")
-#   
-# 
-# xxx = train_eda[["Sex", "Survived"]]
-# xxx.value_counts()
+```{python ignore, eval=FALSE, include=FALSE}
+
+
 ```
