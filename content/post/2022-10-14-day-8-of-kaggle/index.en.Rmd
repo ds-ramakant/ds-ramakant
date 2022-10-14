@@ -1,5 +1,5 @@
 ---
-title: Day 8 of Kaggle
+title: "Day 8 of #50daysofkaggle"
 author: ''
 date: '2022-10-14'
 slug: day-8-of-kaggle
@@ -11,7 +11,7 @@ tags:
   - machinelearning
   - python
 subtitle: 'Decision Tree'
-summary: ''
+summary: 'Classification through Decision Trees'
 authors: []
 lastmod: '2022-10-14T09:32:49+05:30'
 featured: no
@@ -37,7 +37,7 @@ Progress till date:
     -  normalising the data
     -  splitting between `train` into `X_train`, `y_train`, `X_test`, `y_test`
   - Applying KNN algo
-    -  finding the right K based on accuracy. (best at K = 5)
+    -  finding the right K based on accuracy. (best at K = 7)
     -  Calculating the accuracy based on `test`
     
 To do today:
@@ -71,8 +71,5 @@ select_col
 
 train_eda= train[train.columns.intersection(select_col)]
 train_eda
-
-
-
 ```
 

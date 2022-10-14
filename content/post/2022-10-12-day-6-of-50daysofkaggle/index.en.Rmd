@@ -1,5 +1,5 @@
 ---
-title: "Day 6 of 50daysofkaggle"
+title: "Day 6 of #50daysofkaggle"
 author: ''
 date: "2022-10-12"
 slug: "day-6-of-50daysofkaggle"
@@ -9,8 +9,8 @@ tags:
 - kaggle
 - machinelearning
 - python
-subtitle: Classification using KNN
-summary: ''
+subtitle: 'Classification using KNN'
+summary: 'Classification using KNN'
 authors: []
 lastmod: "2022-10-12T15:38:17+05:30"
 featured: no
@@ -230,4 +230,5 @@ print("Train set Accuracy \t:",
       metrics.accuracy_score(y_test, yhat))
 ```
 We find that Test accuracy is around **80% for KNN** 
+
 *pretty much the same as previous attempt before replacing NA*
