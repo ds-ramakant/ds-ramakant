@@ -1,0 +1,91 @@
+---
+title: Day 8 of Kaggle
+author: ''
+date: '2022-10-14'
+slug: day-8-of-kaggle
+categories:
+  - kaggle
+tags:
+  - 50daysofkaggle
+  - kaggle
+  - machinelearning
+  - python
+subtitle: 'Decision Tree'
+summary: ''
+authors: []
+lastmod: '2022-10-14T09:32:49+05:30'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<div id="day-8-titanic-dataset" class="section level1">
+<h1>Day 8: Titanic Dataset</h1>
+<p>Progress till date:</p>
+<ul>
+<li>Download titanic dataset and assign to <code>train</code> &amp; <code>test</code></li>
+<li>Rearranging the data</li>
+<li>EDA (including plots and finding survival rate using <code>.groupby()</code>)</li>
+<li>Modelling</li>
+<li>Data preparation
+- one-hot encoding the <code>Sex</code>, <code>Pclass</code> &amp; <code>Embarked</code> columns
+- appending these to the numerical columns
+- normalising the data
+- splitting between <code>train</code> into <code>X_train</code>, <code>y_train</code>, <code>X_test</code>, <code>y_test</code></li>
+<li>Applying KNN algo
+<ul>
+<li>finding the right K based on accuracy. (best at K = 5)</li>
+<li>Calculating the accuracy based on <code>test</code></li>
+</ul></li>
+</ul>
+<p>To do today:
+- Perform Decision Tree classification</p>
+<pre class="python"><code>import numpy as np
+import pandas as pd
+import zipfile
+
+
+#importing the zipfile already saved in the other folder. 
+zf = zipfile.ZipFile(&quot;../2022-10-12-day-6-of-50daysofkaggle/titanic.zip&quot;)
+train = pd.read_csv(zf.open(&quot;train.csv&quot;))
+test = pd.read_csv(zf.open(&quot;test.csv&quot;))
+
+#Selecting only the numerical columns
+num_col = train.select_dtypes(include=np.number).columns.tolist()
+
+#deslecting passenger ID and &#39;Survived&#39; 
+del num_col[0:2] #.remove() can remove only 1 item. so for more than 1, use for loop 
+select_col = num_col
+
+#remaining columns
+str_col= [&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Survived&quot;]
+str_col
+
+#Adding more elements into a list using `extend` and not `append`</code></pre>
+<pre><code>## [&#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
+<pre class="python"><code>select_col.extend(str_col)
+select_col</code></pre>
+<pre><code>## [&#39;Pclass&#39;, &#39;Age&#39;, &#39;SibSp&#39;, &#39;Parch&#39;, &#39;Fare&#39;, &#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
+<pre class="python"><code>train_eda= train[train.columns.intersection(select_col)]
+train_eda
+</code></pre>
+<pre><code>##      Survived  Pclass     Sex   Age  SibSp  Parch     Fare Embarked
+## 0           0       3    male  22.0      1      0   7.2500        S
+## 1           1       1  female  38.0      1      0  71.2833        C
+## 2           1       3  female  26.0      0      0   7.9250        S
+## 3           1       1  female  35.0      1      0  53.1000        S
+## 4           0       3    male  35.0      0      0   8.0500        S
+## ..        ...     ...     ...   ...    ...    ...      ...      ...
+## 886         0       2    male  27.0      0      0  13.0000        S
+## 887         1       1  female  19.0      0      0  30.0000        S
+## 888         0       3  female   NaN      1      2  23.4500        S
+## 889         1       1    male  26.0      0      0  30.0000        C
+## 890         0       3    male  32.0      0      0   7.7500        Q
+## 
+## [891 rows x 8 columns]</code></pre>
+</div>

@@ -9,7 +9,7 @@ tags:
 - kaggle
 - machinelearning
 - python
-subtitle: ''
+subtitle: Classification using KNN
 summary: ''
 authors: []
 lastmod: "2022-10-12T15:38:17+05:30"
@@ -82,6 +82,35 @@ train_eda</code></pre>
 ## 890         0       3    male  32.0      0      0   7.7500        Q
 ## 
 ## [891 rows x 8 columns]</code></pre>
+<pre class="python"><code>train_eda.isna().sum().sort_values()</code></pre>
+<pre><code>## Survived      0
+## Pclass        0
+## Sex           0
+## SibSp         0
+## Parch         0
+## Fare          0
+## Embarked      2
+## Age         177
+## dtype: int64</code></pre>
+<p>Almost 177 entries in the <code>Age</code> column have no value. Replacing these with the median age instead of removing them.</p>
+<pre class="python"><code>
+train_eda[&quot;Age&quot;].median() #28</code></pre>
+<pre><code>## 28.0</code></pre>
+<pre class="python"><code>train_eda[&quot;Age&quot;].fillna(value = train_eda[&quot;Age&quot;].median(), inplace = True)</code></pre>
+<pre><code>## &lt;string&gt;:1: SettingWithCopyWarning: 
+## A value is trying to be set on a copy of a slice from a DataFrame
+## 
+## See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy</code></pre>
+<pre class="python"><code>train_eda.isna().sum().sort_values()</code></pre>
+<pre><code>## Survived    0
+## Pclass      0
+## Sex         0
+## Age         0
+## SibSp       0
+## Parch       0
+## Fare        0
+## Embarked    2
+## dtype: int64</code></pre>
 <p>Today I want to calculate the survival rate of each of these attributes (<code>Pclass, Sex, Embarked</code>).</p>
 <pre class="python"><code>
 df_copy2 = pd.DataFrame(columns = {&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;})
@@ -107,13 +136,22 @@ df_copy2[[&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;]]</cod
 ## 6  Embarked       Q      0.38961
 ## 7  Embarked       S     0.336957</code></pre>
 <p>With this, its pretty clear that among the <code>sex</code> category, males had the least likelihood of surviving with 19%. The richer <code>class 1</code> managed a 63% chance of survival while only 24% of the lower <code>class 3</code> survived. Finally those that <code>embarked</code> from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.</p>
-<p><em>ignore below. the following code should NOT be seen</em></p>
 <div id="model-building" class="section level2">
 <h2>Model building</h2>
 <p>Seperating the X &amp; y</p>
 <pre class="python"><code>
-
-train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
+train_eda.isna().sum().sort_values()
+</code></pre>
+<pre><code>## Survived    0
+## Pclass      0
+## Sex         0
+## Age         0
+## SibSp       0
+## Parch       0
+## Fare        0
+## Embarked    2
+## dtype: int64</code></pre>
+<pre class="python"><code>train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
 
 X = train_eda[[&quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;]]
 X
@@ -125,13 +163,13 @@ X
 ## 3    35.0      1      0  53.1000
 ## 4    35.0      0      0   8.0500
 ## ..    ...    ...    ...      ...
-## 885  39.0      0      5  29.1250
 ## 886  27.0      0      0  13.0000
 ## 887  19.0      0      0  30.0000
+## 888  28.0      1      2  23.4500
 ## 889  26.0      0      0  30.0000
 ## 890  32.0      0      0   7.7500
 ## 
-## [712 rows x 4 columns]</code></pre>
+## [889 rows x 4 columns]</code></pre>
 <pre class="python"><code>X = pd.concat([X,pd.get_dummies(data = train_eda[[&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Pclass&quot;]], columns = [&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Pclass&quot;])], axis = 1)
 
 X.head()</code></pre>
@@ -146,31 +184,31 @@ X.head()</code></pre>
 <pre class="python"><code>y = train_eda[&quot;Survived&quot;].values
 y[0:5]</code></pre>
 <pre><code>## array([0, 1, 1, 1, 0], dtype=int64)</code></pre>
-<pre class="python"><code>len(y) #712</code></pre>
-<pre><code>## 712</code></pre>
-<pre class="python"><code>X.shape #(712, 12)</code></pre>
-<pre><code>## (712, 12)</code></pre>
+<pre class="python"><code>len(y) #889 after filling up the NA. previously 712</code></pre>
+<pre><code>## 889</code></pre>
+<pre class="python"><code>X.shape #(889, 12)</code></pre>
+<pre><code>## (889, 12)</code></pre>
 <div id="normalising-the-data" class="section level3">
 <h3>Normalising the data</h3>
 <pre class="python"><code>from sklearn import preprocessing
 
 X= preprocessing.StandardScaler().fit(X).transform(X)
 X[0:5]</code></pre>
-<pre><code>## array([[-0.52766856,  0.52251079, -0.50678737, -0.51637992, -0.75613751,
-##          0.75613751, -0.47261792, -0.20232566,  0.53403984, -0.59032605,
-##         -0.56653751,  1.00281295],
-##        [ 0.57709388,  0.52251079, -0.50678737,  0.69404605,  1.32251077,
-##         -1.32251077,  2.11587407, -0.20232566, -1.87251946,  1.69397911,
-##         -0.56653751, -0.99719495],
-##        [-0.25147795, -0.55271372, -0.50678737, -0.50362035,  1.32251077,
-##         -1.32251077, -0.47261792, -0.20232566,  0.53403984, -0.59032605,
-##         -0.56653751,  1.00281295],
-##        [ 0.36995092,  0.52251079, -0.50678737,  0.35032585,  1.32251077,
-##         -1.32251077, -0.47261792, -0.20232566,  0.53403984,  1.69397911,
-##         -0.56653751, -0.99719495],
-##        [ 0.36995092, -0.55271372, -0.50678737, -0.50125747, -0.75613751,
-##          0.75613751, -0.47261792, -0.20232566,  0.53403984, -0.59032605,
-##         -0.56653751,  1.00281295]])</code></pre>
+<pre><code>## array([[-0.56367407,  0.43135024, -0.47432585, -0.50023975, -0.73534203,
+##          0.73534203, -0.48271079, -0.30794088,  0.61679395, -0.56306042,
+##         -0.51087465,  0.90032807],
+##        [ 0.66921696,  0.43135024, -0.47432585,  0.78894661,  1.35991138,
+##         -1.35991138,  2.07163382, -0.30794088, -1.62128697,  1.77600834,
+##         -0.51087465, -1.11070624],
+##        [-0.25545131, -0.47519908, -0.47432585, -0.48664993,  1.35991138,
+##         -1.35991138, -0.48271079, -0.30794088,  0.61679395, -0.56306042,
+##         -0.51087465,  0.90032807],
+##        [ 0.43804989,  0.43135024, -0.47432585,  0.42286111,  1.35991138,
+##         -1.35991138, -0.48271079, -0.30794088,  0.61679395,  1.77600834,
+##         -0.51087465, -1.11070624],
+##        [ 0.43804989, -0.47519908, -0.47432585, -0.4841333 , -0.73534203,
+##          0.73534203, -0.48271079, -0.30794088,  0.61679395, -0.56306042,
+##         -0.51087465,  0.90032807]])</code></pre>
 </div>
 <div id="splitting-into-test-train-data" class="section level3">
 <h3>Splitting into Test &amp; Train data</h3>
@@ -180,8 +218,8 @@ X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random
 print (&#39;Train set\t :&#39;, X_train.shape,  y_train.shape,
 &#39;\nTest set\t :&#39;, X_test.shape,  y_test.shape)
 </code></pre>
-<pre><code>## Train set     : (569, 12) (569,) 
-## Test set  : (143, 12) (143,)</code></pre>
+<pre><code>## Train set     : (711, 12) (711,) 
+## Test set  : (178, 12) (178,)</code></pre>
 </div>
 <div id="k-nearest-neighbours" class="section level3">
 <h3>K Nearest Neighbours</h3>
@@ -198,15 +236,14 @@ neighbours</code></pre>
 <pre class="python"><code>
 yhat1 = neighbours.predict(X_test)
 yhat1[0:5]</code></pre>
-<pre><code>## array([0, 0, 0, 0, 0], dtype=int64)</code></pre>
+<pre><code>## array([0, 1, 0, 0, 1], dtype=int64)</code></pre>
 <pre class="python"><code>from sklearn import metrics
 
 print(&quot;Train set Accuracy \t:&quot;, metrics.accuracy_score(y_train, neighbours.predict(X_train)), &quot;\nTest set Accuracy \t:&quot;, metrics.accuracy_score(y_test, yhat1))</code></pre>
-<pre><code>## Train set Accuracy   : 0.8488576449912126 
-## Test set Accuracy    : 0.7832167832167832</code></pre>
-</div>
-<div id="checking-for-other-k" class="section level4">
-<h4>Checking for other K</h4>
+<pre><code>## Train set Accuracy   : 0.8509142053445851 
+## Test set Accuracy    : 0.7584269662921348</code></pre>
+<p><em>(without replacing <code>na</code> values, the previous test accuracy was 78%)</em>
+#### Checking for other K</p>
 <pre class="python"><code>from sklearn import metrics
 
 Ks = 10
@@ -221,8 +258,8 @@ for n in range(1,Ks):
     std_acc[n-1]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
 
 mean_acc</code></pre>
-<pre><code>## array([0.71328671, 0.74125874, 0.78321678, 0.78321678, 0.79020979,
-##        0.76923077, 0.78321678, 0.79020979, 0.79020979])</code></pre>
+<pre><code>## array([0.78651685, 0.76404494, 0.7752809 , 0.75842697, 0.78089888,
+##        0.78651685, 0.80337079, 0.7752809 , 0.78089888])</code></pre>
 <p>By now you’d have figured that all this is pretty much copy-pasta from someplace else. Glad that IBM coursera assignments came in handy!</p>
 <pre class="python"><code>import matplotlib.pyplot as plt
 
@@ -234,43 +271,25 @@ plt.ylabel(&#39;Accuracy &#39;)
 plt.xlabel(&#39;Number of Neighbors (K)&#39;)
 plt.tight_layout()
 plt.show()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
-<p>Looks like accuracy of KNN is best at 5 neighbours.</p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Looks like accuracy of KNN is best at 7 neighbours.
+<em>previously without replacing NA the accuracy was highest at k = 5</em></p>
 </div>
 <div id="redo-with-k-5" class="section level4">
 <h4>Redo with <code>K = 5</code></h4>
-<pre class="python"><code>k = 5
+<pre class="python"><code>k = 7
 
-neighbours_5 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
-yhat = neighbours_5.predict(X_test)
+neighbours_7 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+yhat = neighbours_7.predict(X_test)
 
 print(&quot;Train set Accuracy \t:&quot;, 
-      metrics.accuracy_score(y_train, neighbours_5.predict(X_train)),
+      metrics.accuracy_score(y_train, neighbours_7.predict(X_train)),
       &quot;\nTest set Accuracy \t:&quot;, 
       metrics.accuracy_score(y_test, yhat))</code></pre>
-<pre><code>## Train set Accuracy   : 0.8506151142355008 
-## Test set Accuracy    : 0.7902097902097902</code></pre>
-<p>Ignore everything below this</p>
-<pre class="python"><code>test.info()
-</code></pre>
-<pre><code>## &lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
-## RangeIndex: 418 entries, 0 to 417
-## Data columns (total 11 columns):
-##  #   Column       Non-Null Count  Dtype  
-## ---  ------       --------------  -----  
-##  0   PassengerId  418 non-null    int64  
-##  1   Pclass       418 non-null    int64  
-##  2   Name         418 non-null    object 
-##  3   Sex          418 non-null    object 
-##  4   Age          332 non-null    float64
-##  5   SibSp        418 non-null    int64  
-##  6   Parch        418 non-null    int64  
-##  7   Ticket       418 non-null    object 
-##  8   Fare         417 non-null    float64
-##  9   Cabin        91 non-null     object 
-##  10  Embarked     418 non-null    object 
-## dtypes: float64(2), int64(4), object(5)
-## memory usage: 36.0+ KB</code></pre>
+<pre><code>## Train set Accuracy   : 0.8509142053445851 
+## Test set Accuracy    : 0.8033707865168539</code></pre>
+<p>We find that Test accuracy is around <strong>80% for KNN</strong>
+<em>pretty much the same as previous attempt before replacing NA</em></p>
 </div>
 </div>
 </div>

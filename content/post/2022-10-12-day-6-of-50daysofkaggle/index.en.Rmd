@@ -9,7 +9,7 @@ tags:
 - kaggle
 - machinelearning
 - python
-subtitle: ''
+subtitle: Classification using KNN
 summary: ''
 authors: []
 lastmod: "2022-10-12T15:38:17+05:30"
@@ -67,7 +67,21 @@ select_col
 train_eda= train[train.columns.intersection(select_col)]
 train_eda
 
+train_eda.isna().sum().sort_values()
 ```
+Almost 177 entries in the `Age` column have no value. Replacing these with the median age instead of removing them. 
+
+```{python}
+
+train_eda["Age"].median() #28
+
+train_eda["Age"].fillna(value = train_eda["Age"].median(), inplace = True)
+
+train_eda.isna().sum().sort_values()
+
+```
+
+
 
 Today I want to calculate the survival rate of each of these attributes (`Pclass, Sex, Embarked`).
 
@@ -90,18 +104,14 @@ df_copy2[["category", "col", "survive_rate"]]
 
 With this, its pretty clear that among the `sex` category, males had the least likelihood of surviving with 19%. The richer `class 1` managed a 63% chance of survival while only 24% of the lower `class 3` survived. Finally those that `embarked` from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.
 
-*ignore below. the following code should NOT be seen*
-
-```{python ignore, eval=FALSE, include=FALSE}
-
-
-```
 
 ## Model building
 
 Seperating the X & y
 
 ```{python}
+
+train_eda.isna().sum().sort_values()
 
 
 train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
@@ -117,8 +127,8 @@ X.head()
 y = train_eda["Survived"].values
 y[0:5]
 
-len(y) #712
-X.shape #(712, 12)
+len(y) #889 after filling up the NA. previously 712
+X.shape #(889, 12)
 ```
 
 ### Normalising the data
@@ -166,8 +176,9 @@ yhat1[0:5]
 from sklearn import metrics
 
 print("Train set Accuracy \t:", metrics.accuracy_score(y_train, neighbours.predict(X_train)), "\nTest set Accuracy \t:", metrics.accuracy_score(y_test, yhat1))
-```
 
+```
+*(without replacing `na` values, the previous test accuracy was 78%)*
 #### Checking for other K
 
 ```{python}
@@ -202,26 +213,21 @@ plt.tight_layout()
 plt.show()
 ```
 
-Looks like accuracy of KNN is best at 5 neighbours.
+Looks like accuracy of KNN is best at 7 neighbours.
+*previously without replacing NA the accuracy was highest at k = 5*
 
 #### Redo with `K = 5`
 
 ```{python}
-k = 5
+k = 7
 
-neighbours_5 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
-yhat = neighbours_5.predict(X_test)
+neighbours_7 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+yhat = neighbours_7.predict(X_test)
 
 print("Train set Accuracy \t:", 
-      metrics.accuracy_score(y_train, neighbours_5.predict(X_train)),
+      metrics.accuracy_score(y_train, neighbours_7.predict(X_train)),
       "\nTest set Accuracy \t:", 
       metrics.accuracy_score(y_test, yhat))
 ```
-
-Ignore everything below this
-
-```{python}
-test.info()
-
-
-```
+We find that Test accuracy is around **80% for KNN** 
+*pretty much the same as previous attempt before replacing NA*
