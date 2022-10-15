@@ -69,7 +69,8 @@ train_eda
 
 train_eda.isna().sum().sort_values()
 ```
-Almost 177 entries in the `Age` column have no value. Replacing these with the median age instead of removing them. 
+
+Almost 177 entries in the `Age` column have no value. Replacing these with the median age instead of removing them.
 
 ```{python}
 
@@ -80,8 +81,6 @@ train_eda["Age"].fillna(value = train_eda["Age"].median(), inplace = True)
 train_eda.isna().sum().sort_values()
 
 ```
-
-
 
 Today I want to calculate the survival rate of each of these attributes (`Pclass, Sex, Embarked`).
 
@@ -104,7 +103,6 @@ df_copy2[["category", "col", "survive_rate"]]
 
 With this, its pretty clear that among the `sex` category, males had the least likelihood of surviving with 19%. The richer `class 1` managed a 63% chance of survival while only 24% of the lower `class 3` survived. Finally those that `embarked` from Cherbourg had a higher survival rate 55% compared to Southampton at 34%.
 
-
 ## Model building
 
 Seperating the X & y
@@ -112,13 +110,10 @@ Seperating the X & y
 ```{python}
 
 train_eda.isna().sum().sort_values()
-
-
 train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
 
 X = train_eda[["Age", "SibSp", "Parch", "Fare"]]
 X
-
 
 X = pd.concat([X,pd.get_dummies(data = train_eda[["Sex", "Embarked", "Pclass"]], columns = ["Sex", "Embarked", "Pclass"])], axis = 1)
 
@@ -178,8 +173,8 @@ from sklearn import metrics
 print("Train set Accuracy \t:", metrics.accuracy_score(y_train, neighbours.predict(X_train)), "\nTest set Accuracy \t:", metrics.accuracy_score(y_test, yhat1))
 
 ```
-*(without replacing `na` values, the previous test accuracy was 78%)*
-#### Checking for other K
+
+*(without replacing `na` values, the previous test accuracy was 78%)* \#### Checking for other K
 
 ```{python}
 from sklearn import metrics
@@ -213,10 +208,9 @@ plt.tight_layout()
 plt.show()
 ```
 
-Looks like accuracy of KNN is best at 7 neighbours.
-*previously without replacing NA the accuracy was highest at k = 5*
+Looks like accuracy of KNN is best at 7 neighbours. *previously without replacing NA the accuracy was highest at k = 5*
 
-#### Redo with `K = 5`
+#### Redo with `K = 7`
 
 ```{python}
 k = 7
@@ -224,11 +218,11 @@ k = 7
 neighbours_7 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
 yhat = neighbours_7.predict(X_test)
 
-print("Train set Accuracy \t:", 
-      metrics.accuracy_score(y_train, neighbours_7.predict(X_train)),
-      "\nTest set Accuracy \t:", 
-      metrics.accuracy_score(y_test, yhat))
+print("Train set Accuracy \t:", metrics.accuracy_score(y_train, neighbours_7.predict(X_train)),"\nTest set Accuracy \t:", metrics.accuracy_score(y_test, yhat),"\nRMSE \t\t\t:",metrics.mean_squared_error(y_test, yhat),"\nNormalised RMSE\t\t:",metrics.mean_squared_error(y_test, yhat)/np.std(y_test))
 ```
-We find that Test accuracy is around **80% for KNN** 
 
-*pretty much the same as previous attempt before replacing NA*
+We find that Test accuracy is around **80% for KNN**[^1] with **RMSE of 0.197** and **Normalised RMSE of 40%**[^2]. [formula for NRMSE here](https://www.marinedatascience.co/blog/2019/01/07/normalizing-the-rmse/)
+
+[^1]: *pretty much the same as previous attempt before replacing NA*
+
+[^2]: *actually NRMSE is not needed as all models are of the same scale. This is used typically for model comparisons across log, decimal etc scales*

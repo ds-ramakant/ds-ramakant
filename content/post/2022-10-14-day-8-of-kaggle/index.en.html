@@ -1,5 +1,5 @@
 ---
-title: Day 8 of Kaggle
+title: "Day 8 of #50daysofkaggle"
 author: ''
 date: '2022-10-14'
 slug: day-8-of-kaggle
@@ -11,7 +11,7 @@ tags:
   - machinelearning
   - python
 subtitle: 'Decision Tree'
-summary: ''
+summary: 'Classification through Decision Trees'
 authors: []
 lastmod: '2022-10-14T09:32:49+05:30'
 featured: no
@@ -39,7 +39,7 @@ projects: []
 - splitting between <code>train</code> into <code>X_train</code>, <code>y_train</code>, <code>X_test</code>, <code>y_test</code></li>
 <li>Applying KNN algo
 <ul>
-<li>finding the right K based on accuracy. (best at K = 5)</li>
+<li>finding the right K based on accuracy. (best at K = 7)</li>
 <li>Calculating the accuracy based on <code>test</code></li>
 </ul></li>
 </ul>
@@ -72,8 +72,7 @@ str_col
 select_col</code></pre>
 <pre><code>## [&#39;Pclass&#39;, &#39;Age&#39;, &#39;SibSp&#39;, &#39;Parch&#39;, &#39;Fare&#39;, &#39;Sex&#39;, &#39;Embarked&#39;, &#39;Survived&#39;]</code></pre>
 <pre class="python"><code>train_eda= train[train.columns.intersection(select_col)]
-train_eda
-</code></pre>
+train_eda</code></pre>
 <pre><code>##      Survived  Pclass     Sex   Age  SibSp  Parch     Fare Embarked
 ## 0           0       3    male  22.0      1      0   7.2500        S
 ## 1           1       1  female  38.0      1      0  71.2833        C
@@ -88,4 +87,155 @@ train_eda
 ## 890         0       3    male  32.0      0      0   7.7500        Q
 ## 
 ## [891 rows x 8 columns]</code></pre>
+<div id="cleaning-up-the-data" class="section level2">
+<h2>Cleaning up the data</h2>
+<pre class="python"><code>train_eda.isna().sum().sort_values()</code></pre>
+<pre><code>## Survived      0
+## Pclass        0
+## Sex           0
+## SibSp         0
+## Parch         0
+## Fare          0
+## Embarked      2
+## Age         177
+## dtype: int64</code></pre>
+<pre class="python"><code>train_eda[&quot;Age&quot;].median() #28</code></pre>
+<pre><code>## 28.0</code></pre>
+<pre class="python"><code>train_eda[&quot;Age&quot;].fillna(value = train_eda[&quot;Age&quot;].median(), inplace = True)</code></pre>
+<pre><code>## &lt;string&gt;:1: SettingWithCopyWarning: 
+## A value is trying to be set on a copy of a slice from a DataFrame
+## 
+## See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy</code></pre>
+<pre class="python"><code>train_eda.isna().sum().sort_values()</code></pre>
+<pre><code>## Survived    0
+## Pclass      0
+## Sex         0
+## Age         0
+## SibSp       0
+## Parch       0
+## Fare        0
+## Embarked    2
+## dtype: int64</code></pre>
+<p><strong>Sidenote</strong>: Was getting a wierd warning (<code>SettingWithCopyWarning</code>) while using <code>.fillna()</code> to replace na with the median values. Turns out there’s a between calling a view or a copy. One way of avoiding this error is to use <code>train_eda.loc[:,"Age"]</code> instead of <code>train_eda["Age"]</code>. This is because <code>.loc</code> returns the view (original) while using subsets. <a href="https://stackoverflow.com/a/54914752/7938068" title="Stockoverflow solution">Elegant explanation here</a>. Below code will not throw up a warning.</p>
+<pre class="python"><code>xx = train_eda.copy()
+xx.loc[:,&quot;Age&quot;].fillna(value = xx.Age.median(), inplace = True)
+xx.isna().sum()</code></pre>
+<pre><code>## Survived    0
+## Pclass      0
+## Sex         0
+## Age         0
+## SibSp       0
+## Parch       0
+## Fare        0
+## Embarked    2
+## dtype: int64</code></pre>
+</div>
+<div id="model-building" class="section level2">
+<h2>Model Building</h2>
+<p>Seperating X &amp; y</p>
+<pre class="python"><code>train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
+
+X = train_eda[[&quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;]]
+X</code></pre>
+<pre><code>##       Age  SibSp  Parch     Fare
+## 0    22.0      1      0   7.2500
+## 1    38.0      1      0  71.2833
+## 2    26.0      0      0   7.9250
+## 3    35.0      1      0  53.1000
+## 4    35.0      0      0   8.0500
+## ..    ...    ...    ...      ...
+## 886  27.0      0      0  13.0000
+## 887  19.0      0      0  30.0000
+## 888  28.0      1      2  23.4500
+## 889  26.0      0      0  30.0000
+## 890  32.0      0      0   7.7500
+## 
+## [889 rows x 4 columns]</code></pre>
+<pre class="python"><code>X = pd.concat([X,pd.get_dummies(data = train_eda[[&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Pclass&quot;]], columns = [&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Pclass&quot;])], axis = 1)
+
+X.head()</code></pre>
+<pre><code>##     Age  SibSp  Parch     Fare  ...  Embarked_S  Pclass_1  Pclass_2  Pclass_3
+## 0  22.0      1      0   7.2500  ...           1         0         0         1
+## 1  38.0      1      0  71.2833  ...           0         1         0         0
+## 2  26.0      0      0   7.9250  ...           1         0         0         1
+## 3  35.0      1      0  53.1000  ...           1         1         0         0
+## 4  35.0      0      0   8.0500  ...           1         0         0         1
+## 
+## [5 rows x 12 columns]</code></pre>
+<pre class="python"><code>y = train_eda[&quot;Survived&quot;].values
+y[0:5]</code></pre>
+<pre><code>## array([0, 1, 1, 1, 0], dtype=int64)</code></pre>
+<pre class="python"><code>len(y) #889 after filling up the NA. previously 712</code></pre>
+<pre><code>## 889</code></pre>
+<pre class="python"><code>X.shape #(889, 12)</code></pre>
+<pre><code>## (889, 12)</code></pre>
+<div id="normalising-the-data" class="section level3">
+<h3>Normalising the data</h3>
+<pre class="python"><code>from sklearn import preprocessing
+
+X= preprocessing.StandardScaler().fit(X).transform(X)
+X[0:5]</code></pre>
+<pre><code>## array([[-0.56367407,  0.43135024, -0.47432585, -0.50023975, -0.73534203,
+##          0.73534203, -0.48271079, -0.30794088,  0.61679395, -0.56306042,
+##         -0.51087465,  0.90032807],
+##        [ 0.66921696,  0.43135024, -0.47432585,  0.78894661,  1.35991138,
+##         -1.35991138,  2.07163382, -0.30794088, -1.62128697,  1.77600834,
+##         -0.51087465, -1.11070624],
+##        [-0.25545131, -0.47519908, -0.47432585, -0.48664993,  1.35991138,
+##         -1.35991138, -0.48271079, -0.30794088,  0.61679395, -0.56306042,
+##         -0.51087465,  0.90032807],
+##        [ 0.43804989,  0.43135024, -0.47432585,  0.42286111,  1.35991138,
+##         -1.35991138, -0.48271079, -0.30794088,  0.61679395,  1.77600834,
+##         -0.51087465, -1.11070624],
+##        [ 0.43804989, -0.47519908, -0.47432585, -0.4841333 , -0.73534203,
+##          0.73534203, -0.48271079, -0.30794088,  0.61679395, -0.56306042,
+##         -0.51087465,  0.90032807]])</code></pre>
+</div>
+<div id="splitting-into-test-train-data" class="section level3">
+<h3>Splitting into Test &amp; Train data</h3>
+<pre class="python"><code>
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print (&#39;Train set\t :&#39;, X_train.shape,  y_train.shape,
+&#39;\nTest set\t :&#39;, X_test.shape,  y_test.shape)
+</code></pre>
+<pre><code>## Train set     : (711, 12) (711,) 
+## Test set  : (178, 12) (178,)</code></pre>
+</div>
+<div id="decision-trees" class="section level3">
+<h3>Decision Trees</h3>
+<pre class="python"><code>from sklearn.tree import DecisionTreeClassifier
+
+Dtree = DecisionTreeClassifier(criterion = &quot;entropy&quot;, max_depth = 3)
+Dtree.fit(X_train,y_train)</code></pre>
+<pre><code>## DecisionTreeClassifier(criterion=&#39;entropy&#39;, max_depth=3)</code></pre>
+<pre class="python"><code>y_test_hat = Dtree.predict(X_test)
+print(&quot;First 10 actual\t\t:&quot;, y_test[0:10],&quot;\nFirst 10 predicted\t:&quot;, y_test_hat[0:10])</code></pre>
+<pre><code>## First 10 actual      : [1 1 0 1 1 1 0 0 0 0] 
+## First 10 predicted   : [1 1 0 1 1 0 0 0 0 0]</code></pre>
+</div>
+<div id="checking-accuracy-of-dt" class="section level3">
+<h3>Checking Accuracy of DT</h3>
+<pre class="python"><code>from sklearn import metrics
+
+print(&quot;Decision Tree Accuracy\t:&quot;, metrics.accuracy_score(y_test, y_test_hat),&quot;\nRMSE\t\t\t:&quot;, metrics.mean_squared_error(y_test,y_test_hat),&quot;\nNormalised RMSE\t\t:&quot;, metrics.mean_squared_error(y_test,y_test_hat)/np.std(y_test))</code></pre>
+<pre><code>## Decision Tree Accuracy   : 0.8314606741573034 
+## RMSE         : 0.16853932584269662 
+## Normalised RMSE      : 0.34266139226005143</code></pre>
+<p>Not bad. We find that Test accuracy is around <strong>83% for Decision Trees</strong> and <strong>RMSE of 0.168</strong></p>
+</div>
+<div id="visualising-the-dt" class="section level3">
+<h3>Visualising the DT</h3>
+<p>Here’s a neat little trick to see how the DT actually thinks.</p>
+<pre class="python"><code>from sklearn import tree
+import matplotlib.pyplot as plt
+
+plt.clf()
+tree.plot_tree(Dtree)
+plt.figure(figsize = (2,2))
+#plt.rcParams[&#39;figure.figsize&#39;] = [10, 10]
+plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="192" /></p>
+</div>
+</div>
 </div>

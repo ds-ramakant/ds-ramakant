@@ -1,5 +1,5 @@
 ---
-title: "Day 6 of 50daysofkaggle"
+title: "Day 6 of #50daysofkaggle"
 author: ''
 date: "2022-10-12"
 slug: "day-6-of-50daysofkaggle"
@@ -9,8 +9,8 @@ tags:
 - kaggle
 - machinelearning
 - python
-subtitle: Classification using KNN
-summary: ''
+subtitle: 'Classification using KNN'
+summary: 'Classification using KNN'
 authors: []
 lastmod: "2022-10-12T15:38:17+05:30"
 featured: no
@@ -140,8 +140,7 @@ df_copy2[[&quot;category&quot;, &quot;col&quot;, &quot;survive_rate&quot;]]</cod
 <h2>Model building</h2>
 <p>Seperating the X &amp; y</p>
 <pre class="python"><code>
-train_eda.isna().sum().sort_values()
-</code></pre>
+train_eda.isna().sum().sort_values()</code></pre>
 <pre><code>## Survived    0
 ## Pclass      0
 ## Sex         0
@@ -154,8 +153,7 @@ train_eda.isna().sum().sort_values()
 <pre class="python"><code>train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
 
 X = train_eda[[&quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;]]
-X
-</code></pre>
+X</code></pre>
 <pre><code>##       Age  SibSp  Parch     Fare
 ## 0    22.0      1      0   7.2500
 ## 1    38.0      1      0  71.2833
@@ -242,8 +240,7 @@ yhat1[0:5]</code></pre>
 print(&quot;Train set Accuracy \t:&quot;, metrics.accuracy_score(y_train, neighbours.predict(X_train)), &quot;\nTest set Accuracy \t:&quot;, metrics.accuracy_score(y_test, yhat1))</code></pre>
 <pre><code>## Train set Accuracy   : 0.8509142053445851 
 ## Test set Accuracy    : 0.7584269662921348</code></pre>
-<p><em>(without replacing <code>na</code> values, the previous test accuracy was 78%)</em>
-#### Checking for other K</p>
+<p><em>(without replacing <code>na</code> values, the previous test accuracy was 78%)</em> #### Checking for other K</p>
 <pre class="python"><code>from sklearn import metrics
 
 Ks = 10
@@ -272,8 +269,7 @@ plt.xlabel(&#39;Number of Neighbors (K)&#39;)
 plt.tight_layout()
 plt.show()</code></pre>
 <p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
-<p>Looks like accuracy of KNN is best at 7 neighbours.
-<em>previously without replacing NA the accuracy was highest at k = 5</em></p>
+<p>Looks like accuracy of KNN is best at 7 neighbours. <em>previously without replacing NA the accuracy was highest at k = 5</em></p>
 </div>
 <div id="redo-with-k-5" class="section level4">
 <h4>Redo with <code>K = 5</code></h4>
@@ -282,15 +278,20 @@ plt.show()</code></pre>
 neighbours_7 = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
 yhat = neighbours_7.predict(X_test)
 
-print(&quot;Train set Accuracy \t:&quot;, 
-      metrics.accuracy_score(y_train, neighbours_7.predict(X_train)),
-      &quot;\nTest set Accuracy \t:&quot;, 
-      metrics.accuracy_score(y_test, yhat))</code></pre>
+print(&quot;Train set Accuracy \t:&quot;, metrics.accuracy_score(y_train, neighbours_7.predict(X_train)),&quot;\nTest set Accuracy \t:&quot;, metrics.accuracy_score(y_test, yhat),&quot;\nRMSE \t\t\t:&quot;,metrics.mean_squared_error(y_test, yhat),&quot;\nNormalised RMSE\t\t:&quot;,metrics.mean_squared_error(y_test, yhat)/np.std(y_test))</code></pre>
 <pre><code>## Train set Accuracy   : 0.8509142053445851 
-## Test set Accuracy    : 0.8033707865168539</code></pre>
-<p>We find that Test accuracy is around <strong>80% for KNN</strong>
-<em>pretty much the same as previous attempt before replacing NA</em></p>
+## Test set Accuracy    : 0.8033707865168539 
+## RMSE             : 0.19662921348314608 
+## Normalised RMSE      : 0.3997716243033934</code></pre>
+<p>We find that Test accuracy is around <strong>80% for KNN</strong><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> with <strong>RMSE of 0.197</strong> and <strong>Normalised RMSE of 40%</strong><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>. <a href="https://www.marinedatascience.co/blog/2019/01/07/normalizing-the-rmse/">formula for NRMSE here</a></p>
 </div>
 </div>
 </div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p><em>pretty much the same as previous attempt before replacing NA</em><a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p><em>actually NRMSE is not needed as all models are of the same scale. This is used typically for model comparisons across log, decimal etc scales</em><a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
 </div>

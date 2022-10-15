@@ -72,4 +72,92 @@ select_col
 train_eda= train[train.columns.intersection(select_col)]
 train_eda
 ```
+## Cleaning up the data
+```{python}
+train_eda.isna().sum().sort_values()
+train_eda["Age"].median() #28
+train_eda["Age"].fillna(value = train_eda["Age"].median(), inplace = True)
+train_eda.isna().sum().sort_values()
+```
+**Sidenote**: Was getting a wierd warning (`SettingWithCopyWarning`) while using `.fillna()` to replace na with the median values. Turns out there's a between calling a view or a copy. One way of avoiding this error is to use `train_eda.loc[:,"Age"]` instead of `train_eda["Age"]`. This is because `.loc` returns the view (original) while using subsets. [Elegant explanation here](https://stackoverflow.com/a/54914752/7938068 "Stockoverflow solution"). Below code will not throw up a warning. 
+
+```{python}
+xx = train_eda.copy()
+xx.loc[:,"Age"].fillna(value = xx.Age.median(), inplace = True)
+xx.isna().sum()
+
+```
+## Model Building
+Seperating X & y
+```{python}
+train_eda = train_eda.dropna(axis = 0) #removing all rows with NA
+
+X = train_eda[["Age", "SibSp", "Parch", "Fare"]]
+X
+
+X = pd.concat([X,pd.get_dummies(data = train_eda[["Sex", "Embarked", "Pclass"]], columns = ["Sex", "Embarked", "Pclass"])], axis = 1)
+
+X.head()
+
+y = train_eda["Survived"].values
+y[0:5]
+
+len(y) #889 after filling up the NA. previously 712
+X.shape #(889, 12)
+
+```
+### Normalising the data
+
+```{python}
+from sklearn import preprocessing
+
+X= preprocessing.StandardScaler().fit(X).transform(X)
+X[0:5]
+```
+
+### Splitting into Test & Train data
+
+```{python}
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print ('Train set\t :', X_train.shape,  y_train.shape,
+'\nTest set\t :', X_test.shape,  y_test.shape)
+
+
+```
+### Decision Trees
+
+```{python}
+from sklearn.tree import DecisionTreeClassifier
+
+Dtree = DecisionTreeClassifier(criterion = "entropy", max_depth = 3)
+Dtree.fit(X_train,y_train)
+y_test_hat = Dtree.predict(X_test)
+print("First 10 actual\t\t:", y_test[0:10],"\nFirst 10 predicted\t:", y_test_hat[0:10])
+
+```
+### Checking Accuracy of DT
+```{python}
+from sklearn import metrics
+
+print("Decision Tree Accuracy\t:", metrics.accuracy_score(y_test, y_test_hat),"\nRMSE\t\t\t:", metrics.mean_squared_error(y_test,y_test_hat),"\nNormalised RMSE\t\t:", metrics.mean_squared_error(y_test,y_test_hat)/np.std(y_test))
+```
+Not bad. We find that Test accuracy is around **83% for Decision Trees** and **RMSE of 0.168** 
+
+### Visualising the DT
+Here's a neat little trick to see how the DT actually thinks. 
+```{python}
+from sklearn import tree
+import matplotlib.pyplot as plt
+
+plt.clf()
+tree.plot_tree(Dtree)
+plt.figure(figsize = (2,2))
+#plt.rcParams['figure.figsize'] = [10, 10]
+plt.show()
+```
+
+
+
 
