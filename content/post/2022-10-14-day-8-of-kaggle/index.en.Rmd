@@ -153,11 +153,6 @@ import matplotlib.pyplot as plt
 
 plt.clf()
 tree.plot_tree(Dtree)
-plt.figure(figsize = (2,2))
-#plt.rcParams['figure.figsize'] = [10, 10]
 plt.show()
 ```
-
-
-
 
