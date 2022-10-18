@@ -22,7 +22,10 @@ projects: []
 ---
 # Day 10: Titanic Dataset
 
+<<<<<<< HEAD
 Part of an ongoing series to [familiarise working on kaggle](https://www.ds-ramakant.com/tag/50daysofkaggle/)
+=======
+>>>>>>> bb37a8424f98fd445e88c591fe7996f72dfa5d2f
 
 Progress till date:
 
